@@ -1,0 +1,9 @@
+# Local build: run Maven verify before building this image.
+FROM eclipse-temurin:21-jre-jammy
+RUN groupadd --system twin && useradd --system --gid twin twin
+WORKDIR /app
+COPY target/backend-0.1.0.jar /app/backend.jar
+USER twin
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError"
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/app/backend.jar"]

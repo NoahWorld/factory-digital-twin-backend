@@ -1,0 +1,4 @@
+target/*
+!target/backend-0.1.0.jar
+.env*
+.local

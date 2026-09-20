@@ -1,0 +1,178 @@
+{
+  "line-chart": [
+    240,
+    160
+  ],
+  "bar-chart": [
+    240,
+    160
+  ],
+  "area-chart": [
+    240,
+    160
+  ],
+  "pie-chart": [
+    240,
+    200
+  ],
+  "donut-chart": [
+    240,
+    200
+  ],
+  "radar-chart": [
+    260,
+    220
+  ],
+  "rectangle": [
+    240,
+    160
+  ],
+  "circle": [
+    240,
+    240
+  ],
+  "screen-title": [
+    360,
+    72
+  ],
+  "background-decoration": [
+    200,
+    72
+  ],
+  "radar-sweep": [
+    160,
+    160
+  ],
+  "data-stream": [
+    200,
+    72
+  ],
+  "circuit-pulse": [
+    240,
+    120
+  ],
+  "energy-core": [
+    160,
+    160
+  ],
+  "industrial-flow": [
+    200,
+    64
+  ],
+  "scan-grid": [
+    240,
+    120
+  ],
+  "datetime": [
+    220,
+    72
+  ],
+  "section-title": [
+    160,
+    48
+  ],
+  "card-background": [
+    160,
+    100
+  ],
+  "icon-background": [
+    64,
+    64
+  ],
+  "panel-frame": [
+    260,
+    180
+  ],
+  "metric-card": [
+    200,
+    120
+  ],
+  "radial-gauge": [
+    240,
+    220
+  ],
+  "progress-list": [
+    280,
+    220
+  ],
+  "status-grid": [
+    300,
+    200
+  ],
+  "ranking-list": [
+    300,
+    220
+  ],
+  "alarm-list": [
+    320,
+    220
+  ],
+  "data-table": [
+    360,
+    220
+  ],
+  "event-timeline": [
+    320,
+    240
+  ],
+  "model-3d": [
+    360,
+    240
+  ],
+  "scene-3d": [
+    480,
+    320
+  ],
+  "asset-detail": [
+    300,
+    260
+  ],
+  "plain-text": [
+    160,
+    48
+  ],
+  "text-link": [
+    160,
+    48
+  ],
+  "image": [
+    160,
+    100
+  ],
+  "carousel": [
+    240,
+    160
+  ],
+  "button": [
+    120,
+    48
+  ],
+  "fullscreen-toggle": [
+    120,
+    48
+  ],
+  "switch": [
+    160,
+    48
+  ],
+  "checkbox-group": [
+    200,
+    96
+  ],
+  "radio-group": [
+    200,
+    96
+  ],
+  "select": [
+    180,
+    64
+  ],
+  "card-title": [
+    120,
+    32
+  ],
+  "vector-icon": [
+    24,
+    24
+  ]
+}

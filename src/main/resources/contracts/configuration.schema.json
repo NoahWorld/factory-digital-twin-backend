@@ -1,0 +1,3804 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "CanvasThemeMode": {
+      "anyOf": [
+        {
+          "const": "dark"
+        },
+        {
+          "const": "light"
+        },
+        {
+          "const": "custom"
+        }
+      ]
+    },
+    "CanvasThemePresetId": {
+      "anyOf": [
+        {
+          "const": "custom"
+        },
+        {
+          "const": "deep-blue"
+        },
+        {
+          "const": "steel-orange"
+        },
+        {
+          "const": "energy-green"
+        },
+        {
+          "const": "command-gold"
+        },
+        {
+          "const": "light-industrial"
+        }
+      ]
+    },
+    "CanvasBackgroundPattern": {
+      "anyOf": [
+        {
+          "const": "none"
+        },
+        {
+          "const": "grid"
+        },
+        {
+          "const": "dots"
+        },
+        {
+          "const": "circuit"
+        }
+      ]
+    },
+    "CanvasFontFamily": {
+      "anyOf": [
+        {
+          "const": "system"
+        },
+        {
+          "const": "industrial"
+        },
+        {
+          "const": "data"
+        }
+      ]
+    },
+    "CanvasTheme": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "$ref": "#/definitions/CanvasThemeMode"
+        },
+        "presetId": {
+          "$ref": "#/definitions/CanvasThemePresetId"
+        },
+        "backgroundPattern": {
+          "$ref": "#/definitions/CanvasBackgroundPattern"
+        },
+        "fontFamily": {
+          "$ref": "#/definitions/CanvasFontFamily"
+        },
+        "glowIntensity": {
+          "type": "number"
+        },
+        "panelRadius": {
+          "type": "number"
+        },
+        "backgroundColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "surfaceColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        }
+      },
+      "required": [
+        "mode",
+        "presetId",
+        "backgroundPattern",
+        "fontFamily",
+        "glowIntensity",
+        "panelRadius",
+        "backgroundColor",
+        "surfaceColor",
+        "textColor",
+        "accentColor",
+        "borderColor"
+      ],
+      "additionalProperties": false
+    },
+    "CanvasNodeType": {
+      "anyOf": [
+        {
+          "const": "card-title"
+        },
+        {
+          "const": "vector-icon"
+        },
+        {
+          "const": "line-chart"
+        },
+        {
+          "const": "bar-chart"
+        },
+        {
+          "const": "area-chart"
+        },
+        {
+          "const": "pie-chart"
+        },
+        {
+          "const": "donut-chart"
+        },
+        {
+          "const": "radar-chart"
+        },
+        {
+          "const": "rectangle"
+        },
+        {
+          "const": "circle"
+        },
+        {
+          "const": "radar-sweep"
+        },
+        {
+          "const": "data-stream"
+        },
+        {
+          "const": "circuit-pulse"
+        },
+        {
+          "const": "energy-core"
+        },
+        {
+          "const": "industrial-flow"
+        },
+        {
+          "const": "scan-grid"
+        },
+        {
+          "const": "screen-title"
+        },
+        {
+          "const": "background-decoration"
+        },
+        {
+          "const": "datetime"
+        },
+        {
+          "const": "section-title"
+        },
+        {
+          "const": "card-background"
+        },
+        {
+          "const": "icon-background"
+        },
+        {
+          "const": "panel-frame"
+        },
+        {
+          "const": "metric-card"
+        },
+        {
+          "const": "radial-gauge"
+        },
+        {
+          "const": "progress-list"
+        },
+        {
+          "const": "status-grid"
+        },
+        {
+          "const": "ranking-list"
+        },
+        {
+          "const": "alarm-list"
+        },
+        {
+          "const": "data-table"
+        },
+        {
+          "const": "event-timeline"
+        },
+        {
+          "const": "plain-text"
+        },
+        {
+          "const": "text-link"
+        },
+        {
+          "const": "image"
+        },
+        {
+          "const": "carousel"
+        },
+        {
+          "const": "button"
+        },
+        {
+          "const": "fullscreen-toggle"
+        },
+        {
+          "const": "switch"
+        },
+        {
+          "const": "checkbox-group"
+        },
+        {
+          "const": "radio-group"
+        },
+        {
+          "const": "select"
+        },
+        {
+          "const": "model-3d"
+        },
+        {
+          "const": "scene-3d"
+        },
+        {
+          "const": "asset-detail"
+        }
+      ]
+    },
+    "VectorIconProps": {
+      "type": "object",
+      "properties": {
+        "icon": {
+          "anyOf": [
+            {
+              "const": "wrench"
+            },
+            {
+              "const": "settings"
+            },
+            {
+              "const": "factory"
+            },
+            {
+              "const": "cpu"
+            },
+            {
+              "const": "cog"
+            },
+            {
+              "const": "monitor"
+            },
+            {
+              "const": "radio-tower"
+            },
+            {
+              "const": "hard-drive"
+            },
+            {
+              "const": "chart-no-axes-combined"
+            },
+            {
+              "const": "chart-column"
+            },
+            {
+              "const": "chart-pie"
+            },
+            {
+              "const": "gauge"
+            },
+            {
+              "const": "activity"
+            },
+            {
+              "const": "database"
+            },
+            {
+              "const": "server"
+            },
+            {
+              "const": "network"
+            },
+            {
+              "const": "zap"
+            },
+            {
+              "const": "battery-charging"
+            },
+            {
+              "const": "plug"
+            },
+            {
+              "const": "flame"
+            },
+            {
+              "const": "droplets"
+            },
+            {
+              "const": "leaf"
+            },
+            {
+              "const": "warehouse"
+            },
+            {
+              "const": "truck"
+            },
+            {
+              "const": "package"
+            },
+            {
+              "const": "boxes"
+            },
+            {
+              "const": "forklift"
+            },
+            {
+              "const": "container"
+            },
+            {
+              "const": "shield-check"
+            },
+            {
+              "const": "bell"
+            },
+            {
+              "const": "triangle-alert"
+            },
+            {
+              "const": "circle-check"
+            },
+            {
+              "const": "clock"
+            },
+            {
+              "const": "users"
+            },
+            {
+              "const": "map-pin"
+            },
+            {
+              "const": "search"
+            },
+            {
+              "const": "none"
+            }
+          ]
+        },
+        "iconSize": {
+          "type": "number"
+        },
+        "iconColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "strokeWidth": {
+          "type": "number"
+        },
+        "rotation": {
+          "type": "number"
+        },
+        "opacity": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "icon",
+        "iconSize",
+        "iconColor",
+        "strokeWidth",
+        "rotation",
+        "opacity"
+      ],
+      "additionalProperties": false
+    },
+    "CardTitleProps": {
+      "type": "object",
+      "properties": {
+        "icon": {
+          "anyOf": [
+            {
+              "const": "wrench"
+            },
+            {
+              "const": "settings"
+            },
+            {
+              "const": "factory"
+            },
+            {
+              "const": "cpu"
+            },
+            {
+              "const": "cog"
+            },
+            {
+              "const": "monitor"
+            },
+            {
+              "const": "radio-tower"
+            },
+            {
+              "const": "hard-drive"
+            },
+            {
+              "const": "chart-no-axes-combined"
+            },
+            {
+              "const": "chart-column"
+            },
+            {
+              "const": "chart-pie"
+            },
+            {
+              "const": "gauge"
+            },
+            {
+              "const": "activity"
+            },
+            {
+              "const": "database"
+            },
+            {
+              "const": "server"
+            },
+            {
+              "const": "network"
+            },
+            {
+              "const": "zap"
+            },
+            {
+              "const": "battery-charging"
+            },
+            {
+              "const": "plug"
+            },
+            {
+              "const": "flame"
+            },
+            {
+              "const": "droplets"
+            },
+            {
+              "const": "leaf"
+            },
+            {
+              "const": "warehouse"
+            },
+            {
+              "const": "truck"
+            },
+            {
+              "const": "package"
+            },
+            {
+              "const": "boxes"
+            },
+            {
+              "const": "forklift"
+            },
+            {
+              "const": "container"
+            },
+            {
+              "const": "shield-check"
+            },
+            {
+              "const": "bell"
+            },
+            {
+              "const": "triangle-alert"
+            },
+            {
+              "const": "circle-check"
+            },
+            {
+              "const": "clock"
+            },
+            {
+              "const": "users"
+            },
+            {
+              "const": "map-pin"
+            },
+            {
+              "const": "search"
+            },
+            {
+              "const": "none"
+            }
+          ]
+        },
+        "iconSize": {
+          "type": "number"
+        },
+        "iconColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "strokeWidth": {
+          "type": "number"
+        },
+        "rotation": {
+          "type": "number"
+        },
+        "opacity": {
+          "type": "number"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "variant": {
+          "anyOf": [
+            {
+              "const": "plain"
+            },
+            {
+              "const": "underline"
+            },
+            {
+              "const": "band"
+            },
+            {
+              "const": "corner"
+            }
+          ]
+        },
+        "fontFamily": {
+          "anyOf": [
+            {
+              "const": "inherit"
+            },
+            {
+              "const": "sans"
+            },
+            {
+              "const": "serif"
+            },
+            {
+              "const": "mono"
+            }
+          ]
+        },
+        "fontSize": {
+          "type": "number"
+        },
+        "fontWeight": {
+          "type": "number"
+        },
+        "italic": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "underline": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "letterSpacing": {
+          "type": "number"
+        },
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "align": {
+          "anyOf": [
+            {
+              "const": "left"
+            },
+            {
+              "const": "center"
+            },
+            {
+              "const": "right"
+            }
+          ]
+        },
+        "gap": {
+          "type": "number"
+        },
+        "padding": {
+          "type": "number"
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "backgroundOpacity": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "icon",
+        "iconSize",
+        "iconColor",
+        "strokeWidth",
+        "rotation",
+        "opacity",
+        "text",
+        "variant",
+        "fontFamily",
+        "fontSize",
+        "fontWeight",
+        "italic",
+        "underline",
+        "letterSpacing",
+        "textColor",
+        "align",
+        "gap",
+        "padding",
+        "accentColor",
+        "fillColor",
+        "backgroundOpacity"
+      ],
+      "additionalProperties": false
+    },
+    "ChartProps": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 8192
+          },
+          "maxItems": 1000
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 1000
+        },
+        "unit": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "color": {
+          "type": "string",
+          "maxLength": 8192
+        }
+      },
+      "required": [
+        "title",
+        "categories",
+        "values",
+        "unit",
+        "color"
+      ],
+      "additionalProperties": false
+    },
+    "ShapeProps": {
+      "type": "object",
+      "properties": {
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderWidth": {
+          "type": "number"
+        },
+        "borderRadius": {
+          "type": "number"
+        },
+        "opacity": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "fillColor",
+        "borderColor",
+        "borderWidth",
+        "borderRadius",
+        "opacity"
+      ],
+      "additionalProperties": false
+    },
+    "DecorationProps": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "subtitle": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "opacity": {
+          "type": "number"
+        },
+        "align": {
+          "anyOf": [
+            {
+              "const": "left"
+            },
+            {
+              "const": "center"
+            },
+            {
+              "const": "right"
+            }
+          ]
+        },
+        "showDate": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "showSeconds": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "text",
+        "subtitle",
+        "textColor",
+        "accentColor",
+        "fillColor",
+        "borderColor",
+        "opacity",
+        "align",
+        "showDate",
+        "showSeconds"
+      ],
+      "additionalProperties": false
+    },
+    "PanelFrameStyle": {
+      "anyOf": [
+        {
+          "const": "outline"
+        },
+        {
+          "const": "corners"
+        },
+        {
+          "const": "cut"
+        },
+        {
+          "const": "glass"
+        },
+        {
+          "const": "neon"
+        }
+      ]
+    },
+    "PanelFrameProps": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "subtitle": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "showHeader": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "style": {
+          "$ref": "#/definitions/PanelFrameStyle"
+        },
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "opacity": {
+          "type": "number"
+        },
+        "glowStrength": {
+          "type": "number"
+        },
+        "headerHeight": {
+          "type": "number"
+        },
+        "cornerSize": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "title",
+        "subtitle",
+        "showHeader",
+        "style",
+        "textColor",
+        "accentColor",
+        "fillColor",
+        "borderColor",
+        "opacity",
+        "glowStrength",
+        "headerHeight",
+        "cornerSize"
+      ],
+      "additionalProperties": false
+    },
+    "MetricCardProps": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "sample": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "value": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "unit": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "subtitle": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "icon": {
+          "type": "string",
+          "maxLength": 8192
+        }
+      },
+      "required": [
+        "title",
+        "textColor",
+        "accentColor",
+        "fillColor",
+        "borderColor",
+        "sample",
+        "value",
+        "unit",
+        "subtitle",
+        "icon"
+      ],
+      "additionalProperties": false
+    },
+    "RadialGaugeProps": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "sample": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "value": {
+          "type": "number"
+        },
+        "maximum": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "subtitle": {
+          "type": "string",
+          "maxLength": 8192
+        }
+      },
+      "required": [
+        "title",
+        "textColor",
+        "accentColor",
+        "fillColor",
+        "borderColor",
+        "sample",
+        "value",
+        "maximum",
+        "unit",
+        "subtitle"
+      ],
+      "additionalProperties": false
+    },
+    "ProgressListItem": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "value": {
+          "type": "number"
+        },
+        "maximum": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "maxLength": 8192
+        }
+      },
+      "required": [
+        "label",
+        "value",
+        "maximum",
+        "unit"
+      ],
+      "additionalProperties": false
+    },
+    "ProgressListProps": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "sample": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProgressListItem"
+          },
+          "maxItems": 1000
+        }
+      },
+      "required": [
+        "title",
+        "textColor",
+        "accentColor",
+        "fillColor",
+        "borderColor",
+        "sample",
+        "items"
+      ],
+      "additionalProperties": false
+    },
+    "DashboardTone": {
+      "anyOf": [
+        {
+          "const": "normal"
+        },
+        {
+          "const": "warning"
+        },
+        {
+          "const": "danger"
+        },
+        {
+          "const": "offline"
+        }
+      ]
+    },
+    "StatusGridItem": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "value": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "tone": {
+          "$ref": "#/definitions/DashboardTone"
+        }
+      },
+      "required": [
+        "label",
+        "value",
+        "tone"
+      ],
+      "additionalProperties": false
+    },
+    "StatusGridProps": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "sample": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "columns": {
+          "type": "number"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/StatusGridItem"
+          },
+          "maxItems": 1000
+        }
+      },
+      "required": [
+        "title",
+        "textColor",
+        "accentColor",
+        "fillColor",
+        "borderColor",
+        "sample",
+        "columns",
+        "items"
+      ],
+      "additionalProperties": false
+    },
+    "RankingListItem": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "trend": {
+          "anyOf": [
+            {
+              "const": "up"
+            },
+            {
+              "const": "down"
+            },
+            {
+              "const": "flat"
+            }
+          ]
+        }
+      },
+      "required": [
+        "label",
+        "value",
+        "unit",
+        "trend"
+      ],
+      "additionalProperties": false
+    },
+    "RankingListProps": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "sample": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RankingListItem"
+          },
+          "maxItems": 1000
+        }
+      },
+      "required": [
+        "title",
+        "textColor",
+        "accentColor",
+        "fillColor",
+        "borderColor",
+        "sample",
+        "items"
+      ],
+      "additionalProperties": false
+    },
+    "AlarmListItem": {
+      "type": "object",
+      "properties": {
+        "time": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "source": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "tone": {
+          "$ref": "#/definitions/DashboardTone"
+        }
+      },
+      "required": [
+        "time",
+        "source",
+        "message",
+        "tone"
+      ],
+      "additionalProperties": false
+    },
+    "AlarmListProps": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "sample": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AlarmListItem"
+          },
+          "maxItems": 1000
+        }
+      },
+      "required": [
+        "title",
+        "textColor",
+        "accentColor",
+        "fillColor",
+        "borderColor",
+        "sample",
+        "items"
+      ],
+      "additionalProperties": false
+    },
+    "DataTableProps": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "sample": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 8192
+          },
+          "maxItems": 1000
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 8192
+            },
+            "maxItems": 1000
+          },
+          "maxItems": 1000
+        },
+        "highlightColumn": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "title",
+        "textColor",
+        "accentColor",
+        "fillColor",
+        "borderColor",
+        "sample",
+        "columns",
+        "rows",
+        "highlightColumn"
+      ],
+      "additionalProperties": false
+    },
+    "TimelineItem": {
+      "type": "object",
+      "properties": {
+        "time": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "detail": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "tone": {
+          "$ref": "#/definitions/DashboardTone"
+        }
+      },
+      "required": [
+        "time",
+        "title",
+        "detail",
+        "tone"
+      ],
+      "additionalProperties": false
+    },
+    "EventTimelineProps": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "sample": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TimelineItem"
+          },
+          "maxItems": 1000
+        }
+      },
+      "required": [
+        "title",
+        "textColor",
+        "accentColor",
+        "fillColor",
+        "borderColor",
+        "sample",
+        "items"
+      ],
+      "additionalProperties": false
+    },
+    "PlainTextProps": {
+      "type": "object",
+      "properties": {
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderRadius": {
+          "type": "number"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "align": {
+          "anyOf": [
+            {
+              "const": "left"
+            },
+            {
+              "const": "center"
+            },
+            {
+              "const": "right"
+            }
+          ]
+        },
+        "fontSize": {
+          "type": "number"
+        },
+        "fontWeight": {
+          "type": "number"
+        },
+        "scrollMode": {
+          "anyOf": [
+            {
+              "const": "none"
+            },
+            {
+              "const": "horizontal"
+            },
+            {
+              "const": "vertical"
+            }
+          ]
+        },
+        "scrollDuration": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "textColor",
+        "accentColor",
+        "fillColor",
+        "borderColor",
+        "borderRadius",
+        "text",
+        "align",
+        "fontSize",
+        "fontWeight",
+        "scrollMode",
+        "scrollDuration"
+      ],
+      "additionalProperties": false
+    },
+    "TextLinkProps": {
+      "type": "object",
+      "properties": {
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderRadius": {
+          "type": "number"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "href": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "align": {
+          "anyOf": [
+            {
+              "const": "left"
+            },
+            {
+              "const": "center"
+            },
+            {
+              "const": "right"
+            }
+          ]
+        },
+        "fontSize": {
+          "type": "number"
+        },
+        "fontWeight": {
+          "type": "number"
+        },
+        "openInNewTab": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "underline": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "textColor",
+        "accentColor",
+        "fillColor",
+        "borderColor",
+        "borderRadius",
+        "text",
+        "href",
+        "align",
+        "fontSize",
+        "fontWeight",
+        "openInNewTab",
+        "underline"
+      ],
+      "additionalProperties": false
+    },
+    "ImageProps": {
+      "type": "object",
+      "properties": {
+        "alt": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fit": {
+          "anyOf": [
+            {
+              "const": "contain"
+            },
+            {
+              "const": "cover"
+            },
+            {
+              "const": "fill"
+            }
+          ]
+        },
+        "backgroundColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderRadius": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "alt",
+        "fit",
+        "backgroundColor",
+        "borderColor",
+        "borderRadius"
+      ],
+      "additionalProperties": false
+    },
+    "CarouselProps": {
+      "type": "object",
+      "properties": {
+        "alt": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fit": {
+          "anyOf": [
+            {
+              "const": "contain"
+            },
+            {
+              "const": "cover"
+            },
+            {
+              "const": "fill"
+            }
+          ]
+        },
+        "backgroundColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderRadius": {
+          "type": "number"
+        },
+        "autoplay": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "interval": {
+          "type": "number"
+        },
+        "showArrows": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "showDots": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "alt",
+        "fit",
+        "backgroundColor",
+        "borderColor",
+        "borderRadius",
+        "autoplay",
+        "interval",
+        "showArrows",
+        "showDots"
+      ],
+      "additionalProperties": false
+    },
+    "ButtonProps": {
+      "type": "object",
+      "properties": {
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderRadius": {
+          "type": "number"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "href": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fontSize": {
+          "type": "number"
+        },
+        "fontWeight": {
+          "type": "number"
+        },
+        "openInNewTab": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "disabled": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "textColor",
+        "accentColor",
+        "fillColor",
+        "borderColor",
+        "borderRadius",
+        "text",
+        "href",
+        "fontSize",
+        "fontWeight",
+        "openInNewTab",
+        "disabled"
+      ],
+      "additionalProperties": false
+    },
+    "FullscreenToggleProps": {
+      "type": "object",
+      "properties": {
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderRadius": {
+          "type": "number"
+        },
+        "enterText": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "exitText": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fontSize": {
+          "type": "number"
+        },
+        "fontWeight": {
+          "type": "number"
+        },
+        "disabled": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "textColor",
+        "accentColor",
+        "fillColor",
+        "borderColor",
+        "borderRadius",
+        "enterText",
+        "exitText",
+        "fontSize",
+        "fontWeight",
+        "disabled"
+      ],
+      "additionalProperties": false
+    },
+    "SwitchProps": {
+      "type": "object",
+      "properties": {
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderRadius": {
+          "type": "number"
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "defaultChecked": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "onText": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "offText": {
+          "type": "string",
+          "maxLength": 8192
+        }
+      },
+      "required": [
+        "textColor",
+        "accentColor",
+        "fillColor",
+        "borderColor",
+        "borderRadius",
+        "label",
+        "defaultChecked",
+        "onText",
+        "offText"
+      ],
+      "additionalProperties": false
+    },
+    "BasicOption": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "value": {
+          "type": "string",
+          "maxLength": 8192
+        }
+      },
+      "required": [
+        "label",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "CheckboxGroupProps": {
+      "type": "object",
+      "properties": {
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderRadius": {
+          "type": "number"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BasicOption"
+          },
+          "maxItems": 1000
+        },
+        "selectedValues": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 8192
+          },
+          "maxItems": 1000
+        },
+        "columns": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "textColor",
+        "accentColor",
+        "fillColor",
+        "borderColor",
+        "borderRadius",
+        "title",
+        "options",
+        "selectedValues",
+        "columns"
+      ],
+      "additionalProperties": false
+    },
+    "RadioGroupProps": {
+      "type": "object",
+      "properties": {
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderRadius": {
+          "type": "number"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BasicOption"
+          },
+          "maxItems": 1000
+        },
+        "selectedValue": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "columns": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "textColor",
+        "accentColor",
+        "fillColor",
+        "borderColor",
+        "borderRadius",
+        "title",
+        "options",
+        "selectedValue",
+        "columns"
+      ],
+      "additionalProperties": false
+    },
+    "SelectProps": {
+      "type": "object",
+      "properties": {
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderRadius": {
+          "type": "number"
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "placeholder": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BasicOption"
+          },
+          "maxItems": 1000
+        },
+        "selectedValue": {
+          "type": "string",
+          "maxLength": 8192
+        }
+      },
+      "required": [
+        "textColor",
+        "accentColor",
+        "fillColor",
+        "borderColor",
+        "borderRadius",
+        "label",
+        "placeholder",
+        "options",
+        "selectedValue"
+      ],
+      "additionalProperties": false
+    },
+    "ModelPresentation": {
+      "type": "object",
+      "properties": {
+        "lighting": {
+          "anyOf": [
+            {
+              "const": "standard"
+            },
+            {
+              "const": "studio"
+            }
+          ]
+        },
+        "shellMode": {
+          "anyOf": [
+            {
+              "const": "original"
+            },
+            {
+              "const": "solid"
+            },
+            {
+              "const": "hidden"
+            }
+          ]
+        },
+        "showFlow": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "explosion": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "lighting",
+        "shellMode",
+        "showFlow",
+        "explosion"
+      ],
+      "additionalProperties": false
+    },
+    "ModelCameraView": {
+      "anyOf": [
+        {
+          "const": "isometric"
+        },
+        {
+          "const": "isometric-left"
+        },
+        {
+          "const": "front"
+        },
+        {
+          "const": "top"
+        }
+      ]
+    },
+    "Vector3Tuple": {
+      "type": "array",
+      "items": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "ModelNodeTransform": {
+      "type": "object",
+      "properties": {
+        "position": {
+          "$ref": "#/definitions/Vector3Tuple"
+        },
+        "rotation": {
+          "$ref": "#/definitions/Vector3Tuple"
+        },
+        "scale": {
+          "$ref": "#/definitions/Vector3Tuple"
+        }
+      },
+      "required": [
+        "position",
+        "rotation",
+        "scale"
+      ],
+      "additionalProperties": false
+    },
+    "ModelAssetInstance": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "assetId": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "transform": {
+          "$ref": "#/definitions/ModelNodeTransform"
+        },
+        "visible": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "assetId",
+        "label",
+        "transform",
+        "visible"
+      ],
+      "additionalProperties": false
+    },
+    "ModelNodeAppearance": {
+      "type": "object",
+      "properties": {
+        "color": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "opacity": {
+          "type": "number"
+        },
+        "visible": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "color",
+        "opacity",
+        "visible"
+      ],
+      "additionalProperties": false
+    },
+    "Model3DProps": {
+      "type": "object",
+      "properties": {
+        "presentation": {
+          "$ref": "#/definitions/ModelPresentation",
+          "default": {
+            "lighting": "standard",
+            "shellMode": "original",
+            "showFlow": true,
+            "explosion": 0
+          }
+        },
+        "backgroundColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "backgroundOpacity": {
+          "type": "number",
+          "default": 1
+        },
+        "environmentLightColor": {
+          "type": "string",
+          "maxLength": 8192,
+          "default": "#daf4ff"
+        },
+        "environmentLightIntensity": {
+          "type": "number",
+          "default": 2.1
+        },
+        "keyLightColor": {
+          "type": "string",
+          "maxLength": 8192,
+          "default": "#ffffff"
+        },
+        "keyLightIntensity": {
+          "type": "number",
+          "default": 2.4
+        },
+        "cameraFov": {
+          "type": "number",
+          "default": 42
+        },
+        "cameraView": {
+          "$ref": "#/definitions/ModelCameraView",
+          "default": "isometric"
+        },
+        "modelScale": {
+          "type": "number",
+          "default": 1
+        },
+        "autoRotate": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "rotationSpeed": {
+          "type": "number"
+        },
+        "showControlPanel": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ],
+          "default": false
+        },
+        "playAnimations": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ],
+          "default": true
+        },
+        "animationSpeed": {
+          "type": "number",
+          "default": 1
+        },
+        "showGrid": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "modelInstances": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ModelAssetInstance"
+          },
+          "maxItems": 1000,
+          "default": []
+        },
+        "appearanceOverrides": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ModelNodeAppearance"
+          },
+          "maxProperties": 100,
+          "default": {}
+        },
+        "transformOverrides": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ModelNodeTransform"
+          },
+          "maxProperties": 100,
+          "default": {}
+        }
+      },
+      "required": [
+        "presentation",
+        "backgroundColor",
+        "backgroundOpacity",
+        "environmentLightColor",
+        "environmentLightIntensity",
+        "keyLightColor",
+        "keyLightIntensity",
+        "cameraFov",
+        "cameraView",
+        "modelScale",
+        "autoRotate",
+        "rotationSpeed",
+        "showControlPanel",
+        "playAnimations",
+        "animationSpeed",
+        "showGrid",
+        "modelInstances",
+        "appearanceOverrides",
+        "transformOverrides"
+      ],
+      "additionalProperties": false
+    },
+    "Scene3DProps": {
+      "type": "object",
+      "properties": {
+        "sceneProjectId": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "maxLength": 8192
+            }
+          ]
+        },
+        "interactionEnabled": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "sceneProjectId",
+        "interactionEnabled"
+      ],
+      "additionalProperties": false
+    },
+    "AssetDetailProps": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "emptyText": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "showMetadata": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "maximumMetrics": {
+          "type": "number"
+        },
+        "textColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "accentColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fillColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "borderColor": {
+          "type": "string",
+          "maxLength": 8192
+        }
+      },
+      "required": [
+        "title",
+        "emptyText",
+        "showMetadata",
+        "maximumMetrics",
+        "textColor",
+        "accentColor",
+        "fillColor",
+        "borderColor"
+      ],
+      "additionalProperties": false
+    },
+    "CanvasNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "type": {
+          "$ref": "#/definitions/CanvasNodeType"
+        },
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "zIndex": {
+          "type": "number"
+        },
+        "props": {
+          "type": "object"
+        },
+        "resourceRefs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 8192
+          },
+          "maxItems": 1000
+        },
+        "dataBindingRefs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 8192
+          },
+          "maxItems": 1000
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "x",
+        "y",
+        "width",
+        "height",
+        "zIndex",
+        "props",
+        "resourceRefs",
+        "dataBindingRefs"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "line-chart",
+                  "bar-chart",
+                  "area-chart",
+                  "pie-chart",
+                  "donut-chart",
+                  "radar-chart"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/ChartProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "rectangle",
+                  "circle"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/ShapeProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "screen-title",
+                  "background-decoration",
+                  "datetime",
+                  "section-title",
+                  "card-background",
+                  "icon-background",
+                  "radar-sweep",
+                  "data-stream",
+                  "circuit-pulse",
+                  "energy-core",
+                  "industrial-flow",
+                  "scan-grid"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/DecorationProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "panel-frame"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/PanelFrameProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "metric-card"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/MetricCardProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "radial-gauge"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/RadialGaugeProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "progress-list"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/ProgressListProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "status-grid"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/StatusGridProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "ranking-list"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/RankingListProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "alarm-list"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/AlarmListProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "data-table"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/DataTableProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "event-timeline"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/EventTimelineProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "plain-text"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/PlainTextProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "text-link"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/TextLinkProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "image"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/ImageProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "carousel"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/CarouselProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "button"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/ButtonProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "fullscreen-toggle"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/FullscreenToggleProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "switch"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/SwitchProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "checkbox-group"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/CheckboxGroupProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "radio-group"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/RadioGroupProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "select"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/SelectProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "model-3d"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/Model3DProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "scene-3d"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/Scene3DProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "asset-detail"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/AssetDetailProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "card-title"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/CardTitleProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "vector-icon"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/VectorIconProps"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "CanvasPatch": {
+      "type": "object",
+      "properties": {
+        "expectedRevision": {
+          "type": "number"
+        },
+        "theme": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CanvasTheme"
+            }
+          ]
+        },
+        "upsertNodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CanvasNode"
+          },
+          "maxItems": 1000
+        },
+        "deleteNodeIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 8192
+          },
+          "maxItems": 1000
+        }
+      },
+      "required": [
+        "expectedRevision",
+        "upsertNodes",
+        "deleteNodeIds"
+      ],
+      "additionalProperties": false
+    },
+    "StandaloneSceneSettings": {
+      "type": "object",
+      "properties": {
+        "animationSpeed": {
+          "type": "number"
+        },
+        "autoRotate": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "backgroundColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "backgroundOpacity": {
+          "type": "number"
+        },
+        "cameraFov": {
+          "type": "number"
+        },
+        "cameraView": {
+          "anyOf": [
+            {
+              "const": "isometric"
+            },
+            {
+              "const": "isometric-left"
+            },
+            {
+              "const": "front"
+            },
+            {
+              "const": "top"
+            }
+          ]
+        },
+        "environmentLightColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "environmentLightIntensity": {
+          "type": "number"
+        },
+        "keyLightColor": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "keyLightIntensity": {
+          "type": "number"
+        },
+        "modelScale": {
+          "type": "number"
+        },
+        "playAnimations": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "rotationSpeed": {
+          "type": "number"
+        },
+        "showGrid": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "animationSpeed",
+        "autoRotate",
+        "backgroundColor",
+        "backgroundOpacity",
+        "cameraFov",
+        "cameraView",
+        "environmentLightColor",
+        "environmentLightIntensity",
+        "keyLightColor",
+        "keyLightIntensity",
+        "modelScale",
+        "playAnimations",
+        "rotationSpeed",
+        "showGrid"
+      ],
+      "additionalProperties": false
+    },
+    "StandaloneSceneInstanceAnimation": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "speed": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "enabled",
+        "speed"
+      ],
+      "additionalProperties": false
+    },
+    "StandaloneSceneInstanceAppearance": {
+      "type": "object",
+      "properties": {
+        "color": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "maxLength": 8192
+            }
+          ]
+        },
+        "opacity": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "color",
+        "opacity"
+      ],
+      "additionalProperties": false
+    },
+    "StandaloneSceneRenderMode": {
+      "anyOf": [
+        {
+          "const": "background"
+        },
+        {
+          "const": "interactive"
+        }
+      ]
+    },
+    "StandaloneSceneInstance": {
+      "type": "object",
+      "properties": {
+        "animation": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/StandaloneSceneInstanceAnimation"
+            }
+          ]
+        },
+        "appearance": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/StandaloneSceneInstanceAppearance"
+            }
+          ]
+        },
+        "assetId": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "maxLength": 8192
+            }
+          ]
+        },
+        "id": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "modelAssetId": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "renderMode": {
+          "$ref": "#/definitions/StandaloneSceneRenderMode"
+        },
+        "sortOrder": {
+          "type": "number"
+        },
+        "transform": {
+          "type": "object",
+          "properties": {
+            "position": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "rotation": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "scale": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "minItems": 3,
+              "maxItems": 3
+            }
+          },
+          "required": [
+            "position",
+            "rotation",
+            "scale"
+          ],
+          "additionalProperties": false
+        },
+        "visible": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "assetId",
+        "id",
+        "label",
+        "modelAssetId",
+        "renderMode",
+        "sortOrder",
+        "transform",
+        "visible"
+      ],
+      "additionalProperties": false
+    },
+    "StandaloneScenePatch": {
+      "type": "object",
+      "properties": {
+        "deleteInstanceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 8192
+          },
+          "maxItems": 1000
+        },
+        "expectedRevision": {
+          "type": "number"
+        },
+        "linked2dProjectId": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "maxLength": 8192
+            }
+          ]
+        },
+        "settings": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/StandaloneSceneSettings"
+            }
+          ]
+        },
+        "upsertInstances": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/StandaloneSceneInstance"
+          },
+          "maxItems": 1000
+        }
+      },
+      "required": [
+        "deleteInstanceIds",
+        "expectedRevision",
+        "upsertInstances"
+      ],
+      "additionalProperties": false
+    },
+    "AssetCreateInput": {
+      "type": "object",
+      "properties": {
+        "assetId": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "modelNode": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "maxLength": 8192
+            }
+          ]
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "assetType": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {},
+          "maxProperties": 100
+        }
+      },
+      "required": [
+        "assetId",
+        "modelNode",
+        "name",
+        "assetType",
+        "metadata"
+      ],
+      "additionalProperties": false
+    },
+    "DataSourceType": {
+      "anyOf": [
+        {
+          "const": "rest_polling"
+        },
+        {
+          "const": "websocket"
+        }
+      ]
+    },
+    "RestPollingConfig": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "intervalSeconds": {
+          "type": "number"
+        },
+        "timeoutMs": {
+          "type": "number"
+        },
+        "timestampPath": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "maxLength": 8192
+            }
+          ]
+        },
+        "credentialRef": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "maxLength": 8192
+            }
+          ]
+        }
+      },
+      "required": [
+        "url",
+        "intervalSeconds",
+        "timeoutMs",
+        "timestampPath",
+        "credentialRef"
+      ],
+      "additionalProperties": false
+    },
+    "WebSocketConfig": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "heartbeatSeconds": {
+          "type": "number"
+        },
+        "reconnectMaxSeconds": {
+          "type": "number"
+        },
+        "credentialRef": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "maxLength": 8192
+            }
+          ]
+        }
+      },
+      "required": [
+        "url",
+        "heartbeatSeconds",
+        "reconnectMaxSeconds",
+        "credentialRef"
+      ],
+      "additionalProperties": false
+    },
+    "DataSourceConfig": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/RestPollingConfig"
+        },
+        {
+          "$ref": "#/definitions/WebSocketConfig"
+        }
+      ]
+    },
+    "DataSourceCreateInput": {
+      "type": "object",
+      "properties": {
+        "sourceType": {
+          "$ref": "#/definitions/DataSourceType"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "config": {
+          "$ref": "#/definitions/DataSourceConfig"
+        }
+      },
+      "required": [
+        "sourceType",
+        "name",
+        "config"
+      ],
+      "additionalProperties": false
+    },
+    "MetricValueType": {
+      "anyOf": [
+        {
+          "const": "string"
+        },
+        {
+          "const": "number"
+        },
+        {
+          "const": "boolean"
+        },
+        {
+          "const": "timestamp"
+        }
+      ]
+    },
+    "AssetDataBindingCreateInput": {
+      "type": "object",
+      "properties": {
+        "dataSourceId": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "metricKey": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "sourcePath": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "valueType": {
+          "$ref": "#/definitions/MetricValueType"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "maxLength": 8192
+            }
+          ]
+        },
+        "staleAfterSeconds": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "dataSourceId",
+        "metricKey",
+        "sourcePath",
+        "valueType",
+        "unit",
+        "staleAfterSeconds"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

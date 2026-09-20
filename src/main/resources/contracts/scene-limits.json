@@ -1,0 +1,8 @@
+{
+  "maximumInstances": 128,
+  "maximumUniqueModelAssets": 24,
+  "maximumUniqueModelBytes": 157286400,
+  "maximumEstimatedMeshInstances": 6000,
+  "maximumAnimatedInstances": 24,
+  "maximumPatchInstances": 100
+}

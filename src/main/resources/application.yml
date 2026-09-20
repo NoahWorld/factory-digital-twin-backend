@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: factory-twin-backend
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:15432/factory_twin}
+    username: ${DATABASE_USER:twin}
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:8}
+      connection-timeout: 5000
+  data:
+    redis:
+      host: ${VALKEY_HOST:localhost}
+      port: ${VALKEY_PORT:16379}
+      password: ${VALKEY_PASSWORD}
+      timeout: 3s
+  jackson:
+    deserialization:
+      fail-on-trailing-tokens: true
+  servlet:
+    multipart:
+      enabled: false
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
+  forward-headers-strategy: none
+  tomcat:
+    threads:
+      max: 80
+    max-connections: 1000
+    connection-timeout: 10s
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+twin:
+  mode: ${TWIN_MODE:api}
+  bootstrap-token: ${BOOTSTRAP_TOKEN}
+  allowed-origins: ${ALLOWED_ORIGINS:http://127.0.0.1:5173,http://localhost:5173,http://127.0.0.1:18080}
+  secure-cookie: ${SECURE_COOKIE:false}
+  default-tenant: ${DEFAULT_TENANT:local}
+  runtime-allowed-origins: ${RUNTIME_ALLOWED_ORIGINS:}
+  storage:
+    endpoint: ${S3_ENDPOINT:http://localhost:18333}
+    public-endpoint: ${S3_PUBLIC_ENDPOINT:http://localhost:18333}
+    region: ${S3_REGION:us-east-1}
+    bucket: ${S3_BUCKET:factory-twin}
+    access-key: ${S3_ACCESS_KEY}
+    secret-key: ${S3_SECRET_KEY}
+logging:
+  pattern:
+    level: '%5p [requestId=%X{requestId:-none}]'
