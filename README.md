@@ -18,6 +18,8 @@
 
 数据库、对象存储、缓存都绑定宿主机回环地址。密码、S3 密钥、初始化令牌在 `deploy/local/.env`；随机管理员密码在 `deploy/local/.local/admin.json`，登录名为 `admin`。两个文件权限为 0600，已加入 Git 忽略；没有源码默认密码。
 
+前端实际地址须与 `ALLOWED_ORIGINS` 精确匹配（包括端口）。如果 5173 被其他项目占用，Vite 可能改用 5174，需要在平台仓库的 `deploy/local/.env` 中显式加入实际来源（例如 `http://127.0.0.1:5174`），不要使用通配来源。修改后在平台仓库根目录执行 `docker compose --env-file deploy/local/.env -f deploy/local/compose.yml up -d --no-deps api` 重新创建 API 容器，单纯 `restart` 不会载入新的环境变量。本地白名单和凭据不随源码提交。
+
 S3 适配器与供应商解耦，本地选择 SeaweedFS，不要求客户绑定这个产品。接其他 S3 实现时必须实测签名、CORS、分片、Range、过期清理与恢复流程。`S3_ENDPOINT` 是容器可访问的内部地址；`S3_PUBLIC_ENDPOINT` 必须能被浏览器访问且与签名 Host/path 一致。
 
 ## 从干净环境启动
