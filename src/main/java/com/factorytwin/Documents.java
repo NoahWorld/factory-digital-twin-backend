@@ -46,8 +46,8 @@ public class Documents {
         "#276f8d");
   }
 
-  static ObjectNode settings() {
-    return Json.obj(
+  static ObjectNode settings(Contracts contracts) {
+    return contracts.normalizeSceneSettings(Json.obj(
         "animationSpeed",
         1,
         "autoRotate",
@@ -75,7 +75,7 @@ public class Documents {
         "rotationSpeed",
         .35,
         "showGrid",
-        true);
+        true));
   }
 
   void kind(JsonNode project, String kind) {
@@ -111,7 +111,7 @@ public class Documents {
       doc.set("theme", Json.parse(row.get("settings").toString()));
       doc.set("nodes", Json.M.valueToTree(items));
     } else {
-      doc.set("settings", Json.parse(row.get("settings").toString()));
+      doc.set("settings", contracts.normalizeSceneSettings((ObjectNode) Json.parse(row.get("settings").toString())));
       doc.set("instances", Json.M.valueToTree(items));
       doc.set("linked2dProjectId", Json.M.valueToTree(row.get("linked_project_id")));
     }
@@ -131,6 +131,7 @@ public class Documents {
   @Transactional
   public ObjectNode patch(Auth.User u, String id, String kind, ObjectNode b) {
     if (kind.equals("canvas")) contracts.normalizeCanvasPatch(b);
+    else contracts.normalizeScenePatch(b);
     contracts.validate(kind.equals("canvas") ? "CanvasPatch" : "StandaloneScenePatch", b);
     long expected = Json.integer(b, "expectedRevision", 0, 9007199254740991L);
     p.access(u, id, true);
@@ -245,6 +246,13 @@ public class Documents {
                   id)
               <= 10000,
           "Canvas exceeds the current 10,000 node storage budget; split the project.");
+    var finalItems = p.db.query(
+        "SELECT body::text FROM document_items WHERE tenant_id=? AND project_id=?",
+        (result, index) -> Json.parse(result.getString(1)), u.tenant(), id);
+    String linkedProjectId = kind.equals("scene")
+        ? (b.has("linked2dProjectId") ? (b.path("linked2dProjectId").isNull() ? null : b.path("linked2dProjectId").asText()) : (String) row.get("linked_project_id"))
+        : null;
+    TwinActions.validate(p, contracts, u, id, kind, linkedProjectId, finalItems);
     p.db.update(
         "UPDATE documents SET revision=revision+1,updated_at=now() WHERE tenant_id=? AND"
             + " project_id=? AND revision=?",
@@ -360,10 +368,12 @@ public class Documents {
 class DocumentController {
   final Documents d;
   final Projects projects;
+  final Contracts contracts;
 
-  DocumentController(Documents d, Projects projects) {
+  DocumentController(Documents d, Projects projects, Contracts contracts) {
     this.d = d;
     this.projects = projects;
+    this.contracts = contracts;
   }
 
   @GetMapping("/{kind:canvas|scene}")
@@ -392,6 +402,8 @@ class DocumentController {
             u.tenant(),
             id);
     row.put("settings", Json.parse(row.get("settings").toString()));
+    if (row.get("kind").equals("scene"))
+      row.put("settings", contracts.normalizeSceneSettings((ObjectNode) row.get("settings")));
     return row;
   }
 

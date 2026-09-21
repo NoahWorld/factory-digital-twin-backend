@@ -16,18 +16,23 @@ public class Projects {
   final Auth auth;
   final TransactionTemplate tx;
   final ProjectCovers covers;
+  final Contracts contracts;
 
-  public Projects(JdbcTemplate db, Auth auth, TransactionTemplate tx, ProjectCovers covers) {
+  public Projects(JdbcTemplate db, Auth auth, TransactionTemplate tx, ProjectCovers covers, Contracts contracts) {
     this.db = db;
     this.auth = auth;
     this.tx = tx;
     this.covers = covers;
+    this.contracts = contracts;
   }
 
   static final String SELECT =
-      "SELECT p.*,pm.role AS member_role,pc.revision AS cover_revision FROM projects p LEFT JOIN project_members pm ON"
+      "SELECT p.*,pm.role AS member_role,pc.revision AS cover_revision,pc.source_revision AS cover_source_revision,"
+          + " pc.status AS cover_status,(pc.png IS NOT NULL) AS cover_has_png,d.revision AS document_revision"
+          + " FROM projects p LEFT JOIN project_members pm ON"
           + " pm.tenant_id=p.tenant_id AND pm.project_id=p.id AND pm.user_id=? LEFT JOIN project_covers pc ON"
-          + " pc.tenant_id=p.tenant_id AND pc.project_id=p.id WHERE p.tenant_id=?"
+          + " pc.tenant_id=p.tenant_id AND pc.project_id=p.id"
+          + " LEFT JOIN documents d ON d.tenant_id=p.tenant_id AND d.project_id=p.id WHERE p.tenant_id=?"
           + " AND (? OR pm.user_id IS NOT NULL)";
 
   public ObjectNode present(Map<String, Object> row) {
@@ -35,6 +40,15 @@ public class Projects {
     if (!(coverRevision instanceof Number)) {
       throw new IllegalStateException("Project cover row is missing for " + row.get("id"));
     }
+    Object documentRevision = row.get("document_revision");
+    if (!(documentRevision instanceof Number)) {
+      throw new IllegalStateException("Project document row is missing for " + row.get("id"));
+    }
+    Object sourceRevision = row.get("cover_source_revision");
+    boolean ready = "ready".equals(row.get("cover_status"))
+        && Boolean.TRUE.equals(row.get("cover_has_png"))
+        && sourceRevision instanceof Number
+        && ((Number) sourceRevision).longValue() == ((Number) documentRevision).longValue();
     return Json.obj(
         "id",
         row.get("id"),
@@ -51,10 +65,14 @@ public class Projects {
         "updatedAt",
         Json.timestamp(row.get("updated_at")),
         "coverUrl",
-        "/api/v1/projects/"
+        Boolean.TRUE.equals(row.get("cover_has_png")) ? "/api/v1/projects/"
             + row.get("id")
-            + "/cover.svg?revision="
-            + ((Number) coverRevision).longValue());
+            + "/cover.png?revision="
+            + ((Number) coverRevision).longValue() : null,
+        "coverStatus", ready ? "ready" : "pending",
+        "documentRevision", ((Number) documentRevision).longValue(),
+        "coverSourceRevision", sourceRevision,
+        "coverRevision", ((Number) coverRevision).longValue());
   }
 
   public ObjectNode access(Auth.User u, String id, boolean write) {
@@ -155,8 +173,7 @@ class ProjectController {
               u.tenant(),
               id,
               type.equals("2d") ? "canvas" : "scene",
-              (type.equals("2d") ? Documents.theme() : Documents.settings()).toString());
-          p.covers.refresh(u.tenant(), id);
+              (type.equals("2d") ? Documents.theme() : Documents.settings(p.contracts)).toString());
           p.auth.audit(u, id, "project.create", Json.obj("projectType", type));
           return Json.obj("project", p.access(u, id, false));
         });
@@ -180,7 +197,6 @@ class ProjectController {
               name,
               id,
               u.tenant());
-          p.covers.refresh(u.tenant(), id);
           p.auth.audit(u, id, "project.rename", Json.obj("name", name));
           return Json.obj("project", p.access(u, id, false));
         });

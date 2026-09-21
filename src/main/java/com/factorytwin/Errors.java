@@ -6,6 +6,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
@@ -25,6 +26,11 @@ public class Errors {
   @ExceptionHandler(NoResourceFoundException.class)
   ResponseEntity<?> missing(Exception e, HttpServletRequest r) {
     return error(404, "route_not_found", "Endpoint not found.", r);
+  }
+
+  @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+  ResponseEntity<?> mediaType(Exception e, HttpServletRequest r) {
+    return error(415, "unsupported_media_type", "Use the endpoint's supported Content-Type.", r);
   }
 
   @ExceptionHandler(DataIntegrityViolationException.class)

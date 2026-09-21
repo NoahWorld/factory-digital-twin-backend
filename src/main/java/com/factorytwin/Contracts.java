@@ -70,6 +70,20 @@ public class Contracts {
     }
   }
 
+  public ObjectNode normalizeSceneSettings(ObjectNode settings) {
+    root.path("definitions").path("StandaloneSceneSettings").path("properties").fields()
+        .forEachRemaining(field -> {
+          if (!settings.has(field.getKey()) && field.getValue().has("default"))
+            settings.set(field.getKey(), field.getValue().get("default").deepCopy());
+        });
+    return settings;
+  }
+
+  public void normalizeScenePatch(ObjectNode patch) {
+    if (patch.path("settings") instanceof ObjectNode settings) normalizeSceneSettings(settings);
+    // Non-object settings remain untouched so schema validation reports the actual error.
+  }
+
   public JsonNode builtin(String id) {
     for (JsonNode n : builtins) if (n.path("id").asText().equals(id)) return n;
     return null;

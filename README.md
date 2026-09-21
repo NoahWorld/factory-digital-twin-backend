@@ -59,7 +59,8 @@ pnpm backend:up:prebuilt
 
 - 身份：首管理员初始化、账号/邮箱登录、持久会话、退出、用户创建/列表、撤销用户会话；全局角色与项目 owner/editor/viewer 分开校验。会话从数据库取得租户，业务请求不能通过自行填写 tenantId 越权。登录可显式指定 `tenant`；默认 `local`。
 - 项目、2D 画布、独立 3D 场景、资产、数据源配置与指标绑定；沿用 `/api/v1`、Cookie、`error/message/requestId` 和 `expectedRevision`。并发保存返回 409；原有错误码 `unauthenticated` 保持一致；文档与资源时间字段输出带 `Z` 的 ISO 8601 UTC 时间，浏览器按本地时区展示。
-- 2D 与 3D 项目创建时由数据库触发器建立默认封面；保存文档或修改名称时，在同一事务中重建 `project_covers` 中的 SVG 并递增封面版本。`GET /projects/{id}/cover.svg` 继续经过项目访问控制，并使用 ETag 重新验证缓存；历史占位封面会在首次读取时按当前渲染器重建并记录日志。
+- 2D 与 3D 项目封面只接受浏览器按已保存项目真实渲染的 960 × 540 PNG（最大 2 MiB）。Flyway V3 删除历史概念 SVG，新项目和迁移项目均为 `pending`，不再由后端绘制占位图。`PUT /api/v1/projects/{id}/cover?sourceRevision=N&expectedCoverRevision=N` 接收 `image/png` 原始字节，要求项目编辑权限，在项目、文档和封面锁内校验双版本；冲突分别返回 `409 revision_conflict` / `409 cover_revision_conflict`。PNG 必须通过块边界、CRC、固定尺寸、有界像素解压和实际解码检查，不接受 APNG 或压缩元数据。
+- 项目接口返回 `coverStatus`、`coverUrl`、`documentRevision`、`coverSourceRevision`、`coverRevision`。新建封面版本为 1；成功上传、文档保存、被引用 3D 场景保存均使对应封面版本递增。保存使封面 `pending`，3D 变更同时使同租户 `scene-3d` 节点引用它的 2D 封面失效，但不修改引用项目文档版本；改名不重新截图。`pending` 可保留最后一张真实 PNG，状态和来源版本明确表示它等待更新；从未截图时 URL 为 null，`GET /api/v1/projects/{id}/cover.png` 返回 `404 project_cover_pending`。图片读取和 304 均先校验项目读权限，使用 `private, no-cache` 与 ETag；PNG 独立保存于 `project_covers`，不得放入节点 JSON 或公共模型存储。
 - 配置按节点/实例规范化保存；`GET /projects/{id}/manifest` 和 `GET /projects/{id}/document-items?revision=…&offset=…&limit=…` 提供版本绑定的清单和分页（最多 200 项）。原有整份文档接口继续兼容。
 - 旧 `model-3d` 画布在保存时补齐缺失的实例、外观、灯光和动画配置，默认值由原 TypeScript 校验器导出到契约的 `default` 注解；不改写已有值，不修复 `null` 或类型错误。属性严格按节点类型校验，错误去重并记录到带请求 ID 的日志，避免把缺少 `modelInstances` 误报成 `animationSpeed` 不受支持。`backend:smoke` 验证旧模型保存/读取与前端解析结果一致。
 - 模型、图片、视频/音频资源的受权访问与删除，文件签名检查、自包含 glTF/GLB 检查、SHA-256、私有 S3 与短期签名下载，支持 Range。短期签名链接在过期前具有持有者访问能力。
@@ -105,6 +106,8 @@ pnpm backend:backup:verify deploy/local/.local/backups/实际目录
 ```
 
 集成测试限定本机 18080，需要 8790 空闲，以及上述 Docker-to-host 白名单。它创建自己的临时项目、用户和租户，完成后删除这些测试数据，不清空已有项目。覆盖真实 8 套前端模板、版本竞争、清单分块、3D、采集故障/恢复、实时快照/续传、文件完整性/Range/分片、角色与租户隔离等 22 项检查；Java 单元测试另有 12 项。浏览器已验证登录、创建项目、加载模板和保存。
+
+2D/3D 声明式交互另有独立真 API 测试：在平台仓库运行 `pnpm backend:smoke:twin-actions`。它限定本机 18080，不启动模拟源或占用 8790，验证动作持久化、引用完整性、事务原子性和权限，默认清理自己的临时项目与账号；`--keep-fixture` 仅在成功后保留供浏览器验收，结束后执行 `pnpm backend:smoke:twin-actions --cleanup`。前置条件、临时记录与精确清理规则见平台仓库的 [联动交互验证](https://github.com/NoahWorld/factory-digital-twin-platform/blob/main/docs/linked-2d-3d-interactions.md#本地-java-api-冒烟测试)。
 
 备份脚本会短暂停止本项目 API/collector/worker/storage，保留 PostgreSQL 运行，取得一致的数据库 dump 和对象存储数据目录，再启动原先运行的服务。备份位于忽略目录，包含密钥和管理员信息，需存入受控且加密的异机存储。Valkey 为可重建缓存，不纳入备份；恢复后重新采集并向客户端发新快照。
 

@@ -2,12 +2,9 @@ package com.factorytwin;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.StringReader;
 import java.nio.file.*;
 import java.util.List;
-import javax.xml.parsers.DocumentBuilderFactory;
 import org.junit.jupiter.api.Test;
-import org.xml.sax.InputSource;
 
 class ContractTest {
   final Contracts c = new Contracts();
@@ -20,6 +17,40 @@ class ContractTest {
                 "dataBindingRefs", List.of(), "props",
                 Json.obj("backgroundColor", "#071525", "autoRotate", false,
                     "rotationSpeed", .35, "showGrid", true, "animationSpeed", 1))));
+  }
+
+  @Test
+  void bottomViewSettingsDefaultOnlyWhenMissingAndRoundTripBothValues() {
+    var settings = Documents.settings(c);
+    assertTrue(settings.path("preventBottomView").asBoolean());
+    settings.remove("preventBottomView");
+    var patch = Json.obj("expectedRevision", 0, "settings", settings,
+        "upsertInstances", List.of(), "deleteInstanceIds", List.of());
+    c.normalizeScenePatch(patch);
+    c.validate("StandaloneScenePatch", patch);
+    assertTrue(patch.path("settings").path("preventBottomView").asBoolean());
+    for (boolean enabled : List.of(true, false)) {
+      settings.put("preventBottomView", enabled);
+      c.normalizeSceneSettings(settings);
+      c.validate("StandaloneSceneSettings", settings);
+      assertEquals(enabled, settings.path("preventBottomView").asBoolean());
+      var model = modelPatch();
+      var props = (com.fasterxml.jackson.databind.node.ObjectNode) model.path("upsertNodes").get(0).path("props");
+      props.put("preventBottomView", enabled);
+      c.normalizeCanvasPatch(model);
+      c.validate("CanvasPatch", model);
+      assertEquals(enabled, props.path("preventBottomView").asBoolean());
+    }
+    for (String bad : List.of("null", "0", "\"false\"", "{}")) {
+      settings.set("preventBottomView", Json.parse(bad));
+      c.normalizeSceneSettings(settings);
+      assertThrows(ApiException.class, () -> c.validate("StandaloneSceneSettings", settings));
+      var model = modelPatch();
+      var props = (com.fasterxml.jackson.databind.node.ObjectNode) model.path("upsertNodes").get(0).path("props");
+      props.set("preventBottomView", Json.parse(bad));
+      c.normalizeCanvasPatch(model);
+      assertThrows(ApiException.class, () -> c.validate("CanvasPatch", model));
+    }
   }
 
   @Test
@@ -176,79 +207,4 @@ class ContractTest {
     assertTrue(Realtime.compare("999-0", "1000-0") < 0);
   }
 
-  @Test
-  void canvasCoverExistsBeforeTheFirstSaveAndEscapesProjectNames() throws Exception {
-    String svg =
-        ProjectCovers.render(
-            "空白 <项目> & \"一号\"", "2d", Documents.theme(), List.of());
-    assertTrue(svg.contains("2D CANVAS"));
-    assertTrue(svg.contains("空白 &lt;项目&gt; &amp; &quot;一号&quot;"));
-    assertFalse(svg.contains("<项目>"));
-    assertWellFormedXml(svg);
-  }
-
-  @Test
-  void sceneCoverReflectsSavedInstances() throws Exception {
-    var pump =
-        Json.obj(
-            "id",
-            "pump-1",
-            "label",
-            "循环水泵",
-            "modelAssetId",
-            "builtin:water-pump",
-            "visible",
-            true,
-            "renderMode",
-            "interactive",
-            "transform",
-            Json.obj(
-                "position",
-                List.of(12, 0, -8),
-                "rotation",
-                List.of(0, 0, 0),
-                "scale",
-                List.of(2, 1, 3)),
-            "appearance",
-            Json.obj("color", "#ffbd59", "opacity", .8));
-    var tank =
-        Json.obj(
-            "id",
-            "tank-1",
-            "label",
-            "沉淀池",
-            "modelAssetId",
-            "builtin:clarifier-basin",
-            "visible",
-            true,
-            "renderMode",
-            "interactive",
-            "transform",
-            Json.obj(
-                "position",
-                List.of(-5, 0, 4),
-                "rotation",
-                List.of(0, 0, 0),
-                "scale",
-                List.of(3, 1, 3)));
-    String empty = ProjectCovers.render("车间", "3d", Documents.settings(), List.of());
-    String saved = ProjectCovers.render("车间", "3d", Documents.settings(), List.of(pump, tank));
-    assertNotEquals(empty, saved);
-    assertTrue(saved.contains("3D SCENE"));
-    assertTrue(saved.contains("3D 场景概览"));
-    assertTrue(saved.contains("循环水泵"));
-    assertTrue(saved.contains("沉淀池"));
-    assertTrue(saved.contains("data-scene-kind=\"pump\""));
-    assertTrue(saved.contains("data-scene-kind=\"tank\""));
-    assertTrue(saved.contains("#ffbd59"));
-    assertEquals(2, ProjectCovers.RENDERER_VERSION);
-    assertWellFormedXml(saved);
-  }
-
-  private static void assertWellFormedXml(String value) throws Exception {
-    var factory = DocumentBuilderFactory.newInstance();
-    factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-    factory.setExpandEntityReferences(false);
-    factory.newDocumentBuilder().parse(new InputSource(new StringReader(value)));
-  }
 }

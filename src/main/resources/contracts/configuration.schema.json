@@ -122,6 +122,177 @@
       ],
       "additionalProperties": false
     },
+    "TwinMessageAction": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "message"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 80,
+          "minLength": 0,
+          "pattern": "^[^\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f\\u007f]*$"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 2000,
+          "minLength": 1,
+          "pattern": "^[^\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f\\u007f]*$"
+        }
+      },
+      "required": [
+        "type",
+        "title",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "TwinSelectAssetAction": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "select-asset"
+        },
+        "assetId": {
+          "type": "string",
+          "maxLength": 8192,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,79}(?![\\s\\S])"
+        }
+      },
+      "required": [
+        "type",
+        "assetId"
+      ],
+      "additionalProperties": false
+    },
+    "TwinPanelAction": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "panel"
+        },
+        "nodeId": {
+          "type": "string",
+          "maxLength": 8192,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}(?![\\s\\S])"
+        },
+        "operation": {
+          "anyOf": [
+            {
+              "const": "show"
+            },
+            {
+              "const": "hide"
+            },
+            {
+              "const": "toggle"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "nodeId",
+        "operation"
+      ],
+      "additionalProperties": false
+    },
+    "TwinFocusModelAction": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "focus-model"
+        },
+        "projectId": {
+          "type": "string",
+          "maxLength": 8192,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}(?![\\s\\S])"
+        },
+        "instanceId": {
+          "type": "string",
+          "maxLength": 8192,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}(?![\\s\\S])"
+        }
+      },
+      "required": [
+        "type",
+        "projectId",
+        "instanceId"
+      ],
+      "additionalProperties": false
+    },
+    "TwinSetTextAction": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "set-text"
+        },
+        "nodeId": {
+          "type": "string",
+          "maxLength": 8192,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}(?![\\s\\S])"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 2000,
+          "minLength": 0,
+          "pattern": "^[^\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f\\u007f]*$"
+        }
+      },
+      "required": [
+        "type",
+        "nodeId",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "TwinAction": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/TwinMessageAction"
+        },
+        {
+          "$ref": "#/definitions/TwinSelectAssetAction"
+        },
+        {
+          "$ref": "#/definitions/TwinPanelAction"
+        },
+        {
+          "$ref": "#/definitions/TwinFocusModelAction"
+        },
+        {
+          "$ref": "#/definitions/TwinSetTextAction"
+        }
+      ]
+    },
+    "CanvasNodeInteraction": {
+      "type": "object",
+      "properties": {
+        "clickActions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TwinAction"
+          },
+          "maxItems": 8
+        },
+        "hiddenInPreview": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "clickActions",
+        "hiddenInPreview"
+      ],
+      "additionalProperties": false
+    },
     "CanvasNodeType": {
       "anyOf": [
         {
@@ -2435,6 +2606,17 @@
             }
           ]
         },
+        "preventBottomView": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ],
+          "default": true
+        },
         "modelInstances": {
           "type": "array",
           "items": {
@@ -2477,6 +2659,7 @@
         "playAnimations",
         "animationSpeed",
         "showGrid",
+        "preventBottomView",
         "modelInstances",
         "appearanceOverrides",
         "transformOverrides"
@@ -2570,6 +2753,13 @@
     "CanvasNode": {
       "type": "object",
       "properties": {
+        "interaction": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CanvasNodeInteraction"
+            }
+          ]
+        },
         "id": {
           "type": "string",
           "maxLength": 8192
@@ -3290,6 +3480,17 @@
             }
           ]
         },
+        "preventBottomView": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ],
+          "default": true
+        },
         "environmentLightColor": {
           "type": "string",
           "maxLength": 8192
@@ -3338,6 +3539,7 @@
         "backgroundOpacity",
         "cameraFov",
         "cameraView",
+        "preventBottomView",
         "environmentLightColor",
         "environmentLightIntensity",
         "keyLightColor",
@@ -3409,6 +3611,17 @@
     "StandaloneSceneInstance": {
       "type": "object",
       "properties": {
+        "clickActions": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/TwinAction"
+              },
+              "maxItems": 8
+            }
+          ]
+        },
         "animation": {
           "anyOf": [
             {
