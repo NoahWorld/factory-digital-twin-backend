@@ -111,7 +111,9 @@ public class Documents {
       doc.set("theme", Json.parse(row.get("settings").toString()));
       doc.set("nodes", Json.M.valueToTree(items));
     } else {
-      doc.set("settings", contracts.normalizeSceneSettings((ObjectNode) Json.parse(row.get("settings").toString())));
+      var stored = (ObjectNode) Json.parse(row.get("settings").toString());
+      doc.set("settings", contracts.sceneSettingsFromStorage(stored));
+      doc.set("fluids", contracts.sceneFluidsFromStorage(stored));
       doc.set("instances", Json.M.valueToTree(items));
       doc.set("linked2dProjectId", Json.M.valueToTree(row.get("linked_project_id")));
     }
@@ -133,6 +135,7 @@ public class Documents {
     if (kind.equals("canvas")) contracts.normalizeCanvasPatch(b);
     else contracts.normalizeScenePatch(b);
     contracts.validate(kind.equals("canvas") ? "CanvasPatch" : "StandaloneScenePatch", b);
+    if (kind.equals("scene") && b.has("fluids")) contracts.fluids(b.get("fluids"));
     long expected = Json.integer(b, "expectedRevision", 0, 9007199254740991L);
     p.access(u, id, true);
     p.lock(u, id);
@@ -159,7 +162,7 @@ public class Documents {
     JsonNode upserts = b.path(itemsKey), deletes = b.path(deleteKey);
     Json.require(upserts.size() + deletes.size() <= 100, "A patch can change at most 100 items.");
     Json.require(
-        upserts.size() + deletes.size() > 0 || b.has(settingsKey) || b.has("linked2dProjectId"),
+        upserts.size() + deletes.size() > 0 || b.has(settingsKey) || b.has("linked2dProjectId") || b.has("fluids"),
         "A patch must contain a change.");
     Set<String> changed = new HashSet<>();
     for (JsonNode item : upserts) {
@@ -215,11 +218,14 @@ public class Documents {
           id,
           d.asText());
     }
-    if (b.has(settingsKey)) {
-      Contracts.appearance(b.path(settingsKey));
+    if (b.has(settingsKey) || (kind.equals("scene") && b.has("fluids"))) {
+      JsonNode storedSettings = kind.equals("scene")
+          ? contracts.sceneStorageAfterPatch((ObjectNode) Json.parse(row.get("settings").toString()), b)
+          : b.path(settingsKey);
+      Contracts.appearance(storedSettings);
       p.db.update(
           "UPDATE documents SET settings=?::jsonb WHERE tenant_id=? AND project_id=?",
-          b.path(settingsKey).toString(),
+          storedSettings.toString(),
           u.tenant(),
           id);
     }
@@ -273,7 +279,11 @@ public class Documents {
             "upserts",
             upserts.size(),
             "deletes",
-            deletes.size()));
+            deletes.size(),
+            "fluidsReplaced",
+            b.has("fluids"),
+            "fluidCount",
+            b.has("fluids") ? b.path("fluids").size() : null));
     return read(u, id, kind);
   }
 
@@ -402,8 +412,11 @@ class DocumentController {
             u.tenant(),
             id);
     row.put("settings", Json.parse(row.get("settings").toString()));
-    if (row.get("kind").equals("scene"))
-      row.put("settings", contracts.normalizeSceneSettings((ObjectNode) row.get("settings")));
+    if (row.get("kind").equals("scene")) {
+      var stored = (ObjectNode) row.get("settings");
+      row.put("settings", contracts.sceneSettingsFromStorage(stored));
+      row.put("fluids", contracts.sceneFluidsFromStorage(stored));
+    }
     return row;
   }
 

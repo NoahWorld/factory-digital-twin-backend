@@ -11,8 +11,9 @@
   "shared/icon-catalog.ts": "59d654f97e28268e81b32347833c924c589e36b89803fb53e4fe2abad9df4d12",
   "shared/canvas-ornaments.ts": "b903e4eab0a34576f0ee41d4a62e996b8374b6cf01e74c7da9c89df129943955",
   "apps/api/src/canvas.ts": "bd92e7f21a216799110abd5f1e90476dbcd81ef1f5aeb86958ff52e1a875d13f",
-  "shared/standalone-3d.ts": "924e5a1bc6f4fe8778b2dac3aaf2ef8d424af18c9bf2f141b05dee3f4a6c794e",
-  "apps/api/src/standalone-scenes.ts": "6057679e46fc1cd9ef633492c0181e7a8453beffee921d2e4f9963cc02a79f2a",
+  "shared/fluids.ts": "8889db63cd53ead58fa30991fba1092767e5045b03edfedb67c18910a2efb305",
+  "shared/standalone-3d.ts": "995cafd6ebf4a4583270e4d180ba9edf07108e423e7fef37d405934c3b734f89",
+  "apps/api/src/standalone-scenes.ts": "8f133701eb55424652fd3709bc8484657ae3cf1b331ea789f203778079e0982f",
   "apps/api/src/assets.ts": "a97ea8e818859c6bd29515342b1abf479923c6f0ce08f69765a7834774a9df71",
   "apps/api/src/data-sources.ts": "1952361f6749d25bdfe86d1f3f3d5c12bad565809e9bfbadac2f2db251d1ec47",
   "apps/api/src/asset-data-bindings.ts": "77ad9602b671889eb3689b5cfe8ba4a84011fc4a208c2964e03aabb9d9c7fd62"

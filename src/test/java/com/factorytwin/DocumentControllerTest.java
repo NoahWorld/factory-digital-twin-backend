@@ -14,6 +14,31 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 class DocumentControllerTest {
   @Test
+  void manifestExposesFluidConfigurationBesideSettingsAndPreservesItsExactValues() throws Exception {
+    var contracts = new Contracts();
+    var db = mock(JdbcTemplate.class);
+    var auth = mock(Auth.class);
+    var projects = spy(new Projects(db, auth, mock(TransactionTemplate.class), mock(ProjectCovers.class), contracts));
+    var controller = new DocumentController(mock(Documents.class), projects, contracts);
+    var request = new MockHttpServletRequest();
+    var user = new Auth.User("user", "tenant", "user@example.invalid", "user", "User", "delivery_manager");
+    when(auth.require(request)).thenReturn(user);
+    doReturn(Json.obj("id", "project")).when(projects).access(user, "project", false);
+    var settings = Documents.settings(contracts);
+    JsonNode fluid;
+    try (var stream = getClass().getResourceAsStream("/fluid-validation-cases.json")) {
+      fluid = Json.M.readTree(stream).path("base");
+    }
+    settings.set("fluids", Json.M.valueToTree(java.util.List.of(fluid)));
+    when(db.queryForMap(contains("FROM documents"), eq("tenant"), eq("project")))
+        .thenReturn(new HashMap<>(Map.of("kind", "scene", "settings", settings.toString())));
+    var manifest = (Map<?, ?>) controller.manifest("project", request);
+    assertEquals(settings.path("fluids"), manifest.get("fluids"));
+    assertFalse(((JsonNode) manifest.get("settings")).has("fluids"));
+    verify(projects).access(user, "project", false);
+  }
+
+  @Test
   void manifestNormalizesLegacySettingsWithoutReadingFieldsFromTheDocumentServiceProxy() {
     var contracts = new Contracts();
     var db = mock(JdbcTemplate.class);

@@ -93,6 +93,14 @@ ws.onmessage = event => {
 
 本机为了集成测试已允许 `http://host.docker.internal:8790`，测试脚本只在测试期间启动明确的模拟数据源。它不是客户数据连接。删除此允许项并重建应用容器即可关闭该入口。
 
+## 公共流体配置
+
+独立 3D 场景通过同级 `scene.fluids` 保存公共流体配置，类型来自平台仓库的 `shared/fluids.ts`。`gas`、`liquid`、`molten` 都支持 `stream` / `diffuse`、颜色、空间路径、正反流向及播放设置；`GET /projects/{id}/scene` 与 manifest 返回相同配置。`PATCH /projects/{id}/scene` 可仅提交 `{expectedRevision, fluids}`，整数组替换，显式 `[]` 删除全部流体，省略则保留。流体与模型共用场景权限、事务及 revision，保存会使封面失效。
+
+每场景最多 32 条，每条 2–64 个路径点；坐标范围 ±10000，半径 0.01–20，速度 0.01–30，扩散量 0–10，透明度 0.05–1。严格拒绝未知字段、重复 ID、相邻重复点、非有限数字、无效枚举以及显式 `null`；未完成路径只属于编辑器草稿。旧文档仅缺失该字段时读为 `[]`。
+
+Java 使用现有 `documents.settings` JSONB 内部保存流体，不新增 Flyway 迁移；公共 API 的 `settings` 仍不接受 `fluids` 嵌套，settings-only PATCH 必须保留已有流体。契约和指纹必须在平台仓库生成后同步，不能手改生成 schema。对应回归为 `FluidContractTest`、`DocumentControllerTest`，平台命令 `pnpm test:fluids` 与 `pnpm backend:smoke:fluids`；后者只操作并清理自己的临时项目和账号，不依赖采集器模拟端口。
+
 ## 验证与备份
 
 ```bash

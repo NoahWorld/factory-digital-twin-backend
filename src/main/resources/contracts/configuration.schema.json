@@ -3438,6 +3438,149 @@
       ],
       "additionalProperties": false
     },
+    "FluidKind": {
+      "anyOf": [
+        {
+          "const": "gas"
+        },
+        {
+          "const": "liquid"
+        },
+        {
+          "const": "molten"
+        }
+      ]
+    },
+    "FluidPoint": {
+      "type": "array",
+      "items": [
+        {
+          "type": "number",
+          "minimum": -10000,
+          "maximum": 10000
+        },
+        {
+          "type": "number",
+          "minimum": -10000,
+          "maximum": 10000
+        },
+        {
+          "type": "number",
+          "minimum": -10000,
+          "maximum": 10000
+        }
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "FluidDefinition": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 8192,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}(?![\\s\\S])"
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 80,
+          "minLength": 1,
+          "pattern": "^[^\\u0000-\\u001f\\u007f]*[^\\s\\u0000-\\u001f\\u007f][^\\u0000-\\u001f\\u007f]*(?![\\s\\S])"
+        },
+        "kind": {
+          "$ref": "#/definitions/FluidKind"
+        },
+        "color": {
+          "type": "string",
+          "maxLength": 8192,
+          "pattern": "^#[0-9a-fA-F]{6}(?![\\s\\S])"
+        },
+        "mode": {
+          "anyOf": [
+            {
+              "const": "stream"
+            },
+            {
+              "const": "diffuse"
+            }
+          ]
+        },
+        "points": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FluidPoint"
+          },
+          "maxItems": 64,
+          "minItems": 2
+        },
+        "radius": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 20
+        },
+        "speed": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 30
+        },
+        "spread": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "opacity": {
+          "type": "number",
+          "minimum": 0.05,
+          "maximum": 1
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "const": "forward"
+            },
+            {
+              "const": "reverse"
+            }
+          ]
+        },
+        "visible": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "playing": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "kind",
+        "color",
+        "mode",
+        "points",
+        "radius",
+        "speed",
+        "spread",
+        "opacity",
+        "direction",
+        "visible",
+        "playing"
+      ],
+      "additionalProperties": false
+    },
     "StandaloneSceneSettings": {
       "type": "object",
       "properties": {
@@ -3750,6 +3893,17 @@
     "StandaloneScenePatch": {
       "type": "object",
       "properties": {
+        "fluids": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/FluidDefinition"
+              },
+              "maxItems": 32
+            }
+          ]
+        },
         "deleteInstanceIds": {
           "type": "array",
           "items": {
