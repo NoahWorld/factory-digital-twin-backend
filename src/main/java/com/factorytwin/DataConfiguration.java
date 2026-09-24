@@ -92,6 +92,8 @@ public class DataConfiguration {
           validate(type, body);
           String table = TYPES.get(type);
           if (type.equals("assets")) {
+            if (!create) TwinDriveDocuments.guardAssetRename(p, u, project,
+                (String) row(u, project, type, id).get("asset_key"), body.path("assetId").asText());
             if (create)
               p.db.update(
                   "INSERT INTO assets(id,tenant_id,project_id,asset_key,body)"

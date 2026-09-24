@@ -103,7 +103,7 @@ public class Operations implements ApplicationRunner {
         "sceneBackgroundGeneration",
         false,
         "publication",
-        false,
+        true,
         "documentChunks",
         true);
   }

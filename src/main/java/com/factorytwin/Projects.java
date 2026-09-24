@@ -76,10 +76,19 @@ public class Projects {
   }
 
   public ObjectNode access(Auth.User u, String id, boolean write) {
-    var rows = db.queryForList(SELECT + " AND p.id=?", u.id(), u.tenant(), u.admin(), id);
+    if (u.publicProjectId() != null) {
+      if (!u.publicProjectId().equals(id))
+        throw new ApiException(404, "project_not_found", "Project is not in this publication.");
+      if (write)
+        throw new ApiException(403, "publication_read_only", "Published access is read-only.");
+    }
+    var rows = db.queryForList(SELECT + " AND p.id=?", u.id(), u.tenant(),
+        u.admin() || u.publicProjectId() != null, id);
     if (rows.isEmpty())
       throw new ApiException(404, "project_not_found", "Project not found or inaccessible.");
     var row = rows.getFirst();
+    if (!u.canAccess((String) row.get("project_type")))
+      throw new ApiException(403, "module_access_denied", "Access to this project module is not granted.");
     if (write
         && !u.admin()
         && !Set.of("owner", "editor").contains(String.valueOf(row.get("member_role"))))
@@ -124,10 +133,13 @@ class ProjectController {
         size >= 1 && size <= 1000 && offset >= 0, "Invalid pagination; limit must be 1..1000.");
     var rows =
         p.db.queryForList(
-            Projects.SELECT + " ORDER BY p.updated_at DESC,p.id LIMIT ? OFFSET ?",
+            Projects.SELECT + " AND ((p.project_type='2d' AND ?) OR (p.project_type='3d' AND ?))"
+                + " ORDER BY p.updated_at DESC,p.id LIMIT ? OFFSET ?",
             u.id(),
             u.tenant(),
             u.admin(),
+            u.canAccess("2d"),
+            u.canAccess("3d"),
             size + 1,
             offset);
     boolean more = rows.size() > size;
@@ -153,6 +165,8 @@ class ProjectController {
     String name = Json.text(b, "name", 2, 100);
     String type = b.path("projectType").asText("2d");
     Json.require(Set.of("2d", "3d").contains(type), "projectType must be 2d or 3d.");
+    if (!u.canAccess(type))
+      throw new ApiException(403, "module_access_denied", "Access to this project module is not granted.");
     return p.tx.execute(
         st -> {
           String id = Json.id();

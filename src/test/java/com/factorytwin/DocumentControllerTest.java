@@ -21,7 +21,7 @@ class DocumentControllerTest {
     var projects = spy(new Projects(db, auth, mock(TransactionTemplate.class), mock(ProjectCovers.class), contracts));
     var controller = new DocumentController(mock(Documents.class), projects, contracts);
     var request = new MockHttpServletRequest();
-    var user = new Auth.User("user", "tenant", "user@example.invalid", "user", "User", "delivery_manager");
+    var user = new Auth.User("user", "tenant", "user@example.invalid", "user", "User", "delivery_manager", true, true);
     when(auth.require(request)).thenReturn(user);
     doReturn(Json.obj("id", "project")).when(projects).access(user, "project", false);
     var settings = Documents.settings(contracts);
@@ -47,7 +47,7 @@ class DocumentControllerTest {
     // A mocked/proxied service must be used through methods, not its uninitialized fields.
     var controller = new DocumentController(mock(Documents.class), projects, contracts);
     var request = new MockHttpServletRequest();
-    var user = new Auth.User("user", "tenant", "user@example.invalid", "user", "User", "delivery_manager");
+    var user = new Auth.User("user", "tenant", "user@example.invalid", "user", "User", "delivery_manager", true, true);
     when(auth.require(request)).thenReturn(user);
     doReturn(Json.obj("id", "project")).when(projects).access(user, "project", false);
     for (String kind : new String[] {"scene", "canvas"}) {

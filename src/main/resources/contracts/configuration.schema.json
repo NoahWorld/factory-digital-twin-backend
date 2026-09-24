@@ -4166,6 +4166,641 @@
         "staleAfterSeconds"
       ],
       "additionalProperties": false
+    },
+    "TwinSimulation": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "procedureId": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "repeat": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "enabled",
+        "procedureId",
+        "repeat"
+      ],
+      "additionalProperties": false
+    },
+    "TwinPoint": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 120,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$"
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 120,
+          "minLength": 1
+        },
+        "assetId": {
+          "type": "string",
+          "maxLength": 80,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,79}$"
+        },
+        "metricKey": {
+          "type": "string",
+          "maxLength": 80,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,79}$"
+        },
+        "unit": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "topic": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 8192
+            }
+          ],
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,199}$"
+        },
+        "min": {
+          "type": "number",
+          "minimum": -1000000,
+          "maximum": 1000000
+        },
+        "max": {
+          "type": "number",
+          "minimum": -1000000,
+          "maximum": 1000000
+        },
+        "initialValue": {
+          "type": "number",
+          "minimum": -1000000,
+          "maximum": 1000000
+        },
+        "maxSpeed": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1000000
+        },
+        "staleAfterMs": {
+          "type": "integer",
+          "minimum": 500,
+          "maximum": 60000
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "assetId",
+        "metricKey",
+        "unit",
+        "min",
+        "max",
+        "initialValue",
+        "maxSpeed",
+        "staleAfterMs"
+      ],
+      "additionalProperties": false
+    },
+    "TwinTarget": {
+      "type": "object",
+      "properties": {
+        "instanceId": {
+          "type": "string",
+          "maxLength": 120,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$"
+        },
+        "modelAssetId": {
+          "type": "string",
+          "maxLength": 120,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$"
+        },
+        "nodeName": {
+          "type": "string",
+          "maxLength": 256,
+          "minLength": 1
+        }
+      },
+      "required": [
+        "instanceId",
+        "modelAssetId",
+        "nodeName"
+      ],
+      "additionalProperties": false
+    },
+    "TwinVector": {
+      "type": "array",
+      "items": [
+        {
+          "type": "number",
+          "minimum": -1000000,
+          "maximum": 1000000
+        },
+        {
+          "type": "number",
+          "minimum": -1000000,
+          "maximum": 1000000
+        },
+        {
+          "type": "number",
+          "minimum": -1000000,
+          "maximum": 1000000
+        }
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "TwinPoseKey": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "position": {
+          "$ref": "#/definitions/TwinVector"
+        },
+        "rotation": {
+          "$ref": "#/definitions/TwinVector"
+        },
+        "scale": {
+          "$ref": "#/definitions/TwinVector"
+        }
+      },
+      "required": [
+        "value",
+        "position",
+        "rotation",
+        "scale"
+      ],
+      "additionalProperties": false
+    },
+    "TwinMotionBinding": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 120,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$"
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 120,
+          "minLength": 1
+        },
+        "pointId": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "target": {
+          "$ref": "#/definitions/TwinTarget"
+        },
+        "parentBindingId": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "maxLength": 8192
+            }
+          ]
+        },
+        "useNodeRestPose": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "kind": {
+          "anyOf": [
+            {
+              "const": "translation"
+            },
+            {
+              "const": "rotation"
+            },
+            {
+              "const": "pose"
+            },
+            {
+              "const": "visibility"
+            }
+          ]
+        },
+        "axis": {
+          "$ref": "#/definitions/TwinVector"
+        },
+        "pivot": {
+          "$ref": "#/definitions/TwinVector"
+        },
+        "valueScale": {
+          "type": "number",
+          "minimum": -1000000,
+          "maximum": 1000000
+        },
+        "valueOffset": {
+          "type": "number",
+          "minimum": -1000000,
+          "maximum": 1000000
+        },
+        "poses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TwinPoseKey"
+          },
+          "maxItems": 64
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "pointId",
+        "target",
+        "parentBindingId",
+        "useNodeRestPose",
+        "kind",
+        "axis",
+        "pivot",
+        "valueScale",
+        "valueOffset",
+        "poses"
+      ],
+      "additionalProperties": false
+    },
+    "TwinCollider": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 120,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$"
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 120,
+          "minLength": 1
+        },
+        "target": {
+          "$ref": "#/definitions/TwinTarget"
+        },
+        "center": {
+          "$ref": "#/definitions/TwinVector"
+        },
+        "size": {
+          "$ref": "#/definitions/TwinVector"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "target",
+        "center",
+        "size"
+      ],
+      "additionalProperties": false
+    },
+    "TwinCollisionRule": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 120,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$"
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 120,
+          "minLength": 1
+        },
+        "first": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "second": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "severity": {
+          "anyOf": [
+            {
+              "const": "warning"
+            },
+            {
+              "const": "error"
+            }
+          ]
+        },
+        "enabled": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "first",
+        "second",
+        "severity",
+        "enabled"
+      ],
+      "additionalProperties": false
+    },
+    "TwinSetpoint": {
+      "type": "object",
+      "properties": {
+        "pointId": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "value": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "pointId",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "TwinProcedureStep": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 120,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$"
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 120,
+          "minLength": 1
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TwinSetpoint"
+          },
+          "maxItems": 128,
+          "minItems": 1
+        },
+        "tolerance": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "timeoutMs": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 600000
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "targets",
+        "tolerance",
+        "timeoutMs"
+      ],
+      "additionalProperties": false
+    },
+    "TwinProcedure": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 120,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$"
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 120,
+          "minLength": 1
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TwinProcedureStep"
+          },
+          "maxItems": 64,
+          "minItems": 1
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "steps"
+      ],
+      "additionalProperties": false
+    },
+    "TwinDriveConfig": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "enabled": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "source": {
+          "const": "simulator"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 8192
+            }
+          ],
+          "maxLength": 4000
+        },
+        "simulation": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/TwinSimulation"
+            }
+          ]
+        },
+        "points": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TwinPoint"
+          },
+          "maxItems": 128
+        },
+        "bindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TwinMotionBinding"
+          },
+          "maxItems": 128
+        },
+        "colliders": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TwinCollider"
+          },
+          "maxItems": 64
+        },
+        "collisionRules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TwinCollisionRule"
+          },
+          "maxItems": 128
+        },
+        "procedures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TwinProcedure"
+          },
+          "maxItems": 16
+        }
+      },
+      "required": [
+        "version",
+        "enabled",
+        "source",
+        "points",
+        "bindings",
+        "colliders",
+        "collisionRules",
+        "procedures"
+      ],
+      "additionalProperties": false
+    },
+    "TwinDrivePatch": {
+      "type": "object",
+      "properties": {
+        "expectedRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "config": {
+          "$ref": "#/definitions/TwinDriveConfig"
+        }
+      },
+      "required": [
+        "expectedRevision",
+        "config"
+      ],
+      "additionalProperties": false
+    },
+    "TwinDriveCommand": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "command"
+        },
+        "commandId": {
+          "type": "string",
+          "maxLength": 120,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$"
+        },
+        "expectedRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "operation": {
+          "anyOf": [
+            {
+              "const": "set"
+            },
+            {
+              "const": "move"
+            },
+            {
+              "const": "pause"
+            },
+            {
+              "const": "resume"
+            },
+            {
+              "const": "reset"
+            },
+            {
+              "const": "run-procedure"
+            },
+            {
+              "const": "stop-procedure"
+            }
+          ]
+        },
+        "values": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/TwinSetpoint"
+              },
+              "maxItems": 1000
+            }
+          ],
+          "maxItems": 128
+        },
+        "procedureId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 8192
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "commandId",
+        "expectedRevision",
+        "operation"
+      ],
+      "additionalProperties": false
     }
   }
 }

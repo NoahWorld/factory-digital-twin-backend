@@ -259,6 +259,9 @@ public class Documents {
         ? (b.has("linked2dProjectId") ? (b.path("linked2dProjectId").isNull() ? null : b.path("linked2dProjectId").asText()) : (String) row.get("linked_project_id"))
         : null;
     TwinActions.validate(p, contracts, u, id, kind, linkedProjectId, finalItems);
+    if (kind.equals("scene"))
+      TwinDriveDocuments.guardScene(p, u, id,
+          b.has("settings") ? b.path("settings") : Json.parse(row.get("settings").toString()), finalItems);
     p.db.update(
         "UPDATE documents SET revision=revision+1,updated_at=now() WHERE tenant_id=? AND"
             + " project_id=? AND revision=?",
@@ -288,7 +291,7 @@ public class Documents {
   }
 
   public JsonNode resource(Auth.User u, String project, String id, String kind) {
-    JsonNode builtin = kind.equals("model") ? contracts.builtin(id) : null;
+    JsonNode builtin = contracts.builtinResource(kind, id);
     if (builtin != null) return builtin;
     var rows =
         p.db.queryForList(

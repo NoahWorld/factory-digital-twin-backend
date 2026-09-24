@@ -12,12 +12,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class Contracts {
   private static final Logger log = LoggerFactory.getLogger(Contracts.class);
-  final JsonNode root, builtins, minimumSizes, limits;
+  final JsonNode root, builtins, builtinImages, minimumSizes, limits;
   final Map<String, JsonSchema> validators = new HashMap<>();
 
   public Contracts() {
     root = resource("configuration.schema.json");
     builtins = resource("builtin-models.json");
+    builtinImages = resource("builtin-images.json");
     minimumSizes = resource("canvas-minimum-sizes.json");
     limits = resource("scene-limits.json");
   }
@@ -139,6 +140,13 @@ public class Contracts {
 
   public JsonNode builtin(String id) {
     for (JsonNode n : builtins) if (n.path("id").asText().equals(id)) return n;
+    return null;
+  }
+
+  public JsonNode builtinResource(String kind, String id) {
+    if (kind.equals("model")) return builtin(id);
+    if (kind.equals("image"))
+      for (JsonNode image : builtinImages) if (image.path("id").asText().equals(id)) return image;
     return null;
   }
 

@@ -57,7 +57,7 @@ pnpm backend:up:prebuilt
 
 ## 已实现的接口与数据流
 
-- 身份：首管理员初始化、账号/邮箱登录、持久会话、退出、用户创建/列表、撤销用户会话；全局角色与项目 owner/editor/viewer 分开校验。会话从数据库取得租户，业务请求不能通过自行填写 tenantId 越权。登录可显式指定 `tenant`；默认 `local`。
+- 身份：首管理员初始化、账号/邮箱登录、持久会话、退出；管理员通过 `GET/POST /api/v1/users` 和 `GET/PUT/DELETE /api/v1/users/{id}` 创建、查看、编辑、删除账号，通过 `POST /api/v1/users/{id}/restore` 恢复账号。编辑可修改资料、全局角色、模块授权，并可重设密码、撤销原会话。删除是停用账号并撤销会话，保留项目和审计记录；当前管理员不能删除自己或移除自己的管理员角色，最后一个启用的管理员不能被移除。全局角色与项目 owner/editor/viewer 分开校验。管理员也可通过 `PATCH /api/v1/users/{id}/modules` 分别授权 `2d`、`3d`，或授予空数组；平台管理员固定拥有两个模块。模块授权是项目类型的访问前提，项目成员权限继续决定具体项目的操作。V5 迁移保留既有账号的两个模块，新账号需在 `POST /api/v1/users` 中明确提交 `modules`；已有会话下一次请求即使用新授权。会话从数据库取得租户，业务请求不能通过自行填写 tenantId 越权。登录可显式指定 `tenant`；默认 `local`。
 - 项目、2D 画布、独立 3D 场景、资产、数据源配置与指标绑定；沿用 `/api/v1`、Cookie、`error/message/requestId` 和 `expectedRevision`。并发保存返回 409；原有错误码 `unauthenticated` 保持一致；文档与资源时间字段输出带 `Z` 的 ISO 8601 UTC 时间，浏览器按本地时区展示。
 - 2D 与 3D 项目封面只接受浏览器按已保存项目真实渲染的 960 × 540 PNG（最大 2 MiB）。Flyway V3 删除历史概念 SVG，新项目和迁移项目均为 `pending`，不再由后端绘制占位图。`PUT /api/v1/projects/{id}/cover?sourceRevision=N&expectedCoverRevision=N` 接收 `image/png` 原始字节，要求项目编辑权限，在项目、文档和封面锁内校验双版本；冲突分别返回 `409 revision_conflict` / `409 cover_revision_conflict`。PNG 必须通过块边界、CRC、固定尺寸、有界像素解压和实际解码检查，不接受 APNG 或压缩元数据。
 - 项目接口返回 `coverStatus`、`coverUrl`、`documentRevision`、`coverSourceRevision`、`coverRevision`。新建封面版本为 1；成功上传、文档保存、被引用 3D 场景保存均使对应封面版本递增。保存使封面 `pending`，3D 变更同时使同租户 `scene-3d` 节点引用它的 2D 封面失效，但不修改引用项目文档版本；改名不重新截图。`pending` 可保留最后一张真实 PNG，状态和来源版本明确表示它等待更新；从未截图时 URL 为 null，`GET /api/v1/projects/{id}/cover.png` 返回 `404 project_cover_pending`。图片读取和 304 均先校验项目读权限，使用 `private, no-cache` 与 ETag；PNG 独立保存于 `project_covers`，不得放入节点 JSON 或公共模型存储。
@@ -92,6 +92,50 @@ ws.onmessage = event => {
 外部采集必须在 `.env` 中显式设置 `RUNTIME_ALLOWED_ORIGINS`（完整 scheme + host + port，多个用逗号分隔），默认空值拒绝全部采集。允许列表应只包含受控设备网关；应用检查不能替代网络出口防火墙和 DNS 管理。禁止重定向，超时最多 15 秒，响应最多 256 KiB。
 
 本机为了集成测试已允许 `http://host.docker.internal:8790`，测试脚本只在测试期间启动明确的模拟数据源。它不是客户数据连接。删除此允许项并重建应用容器即可关闭该入口。
+
+## 项目公开发布
+
+Java 后端支持项目编辑者和管理员发布 2D 或 3D 项目。项目卡片的发布按钮生成 `#/share/{shareToken}` 链接；访问者打开链接无需登录，只能查看当前已保存的项目。本地 `127.0.0.1` 链接仅本机可用；要分享给其他人，须将前端和 Java API 部署到他们可访问的同站点地址。发布时检查发布者对根项目及所有关联项目的编辑权限、模型/图片/媒体引用资源是否 `ready`，并限制关联项目不超过 32 个。关联范围在发布时确定；新增跨项目引用后要重新发布才能加入公开范围，重新发布会生成新链接并立即废止旧链接。
+
+登录会话接口：`GET /api/v1/projects/{id}/publication` 查看状态，`POST` 发布或重新发布，`DELETE` 取消发布。公开读取接口：`GET /api/v1/publications?share={shareToken}`、`GET /api/v1/publications/projects?share=…`、`GET /api/v1/publications/projects/{id}/canvas|scene?share=…`，以及同一路径下的 `assets`、`assets/{asset}/runtime-state`、`model|image|media-assets`、资源 `content`、`cover.png`、`twin-drive`。公开点位连接为 `/api/v1/twin-drive?projectId={id}&share={shareToken}`，仅允许订阅和心跳，控制命令返回 `403 publication_read_only`。公开接口每次重新验证令牌与范围，取消发布后新请求返回 `404 publication_not_found`，现有点位连接在下一次消息或推送时关闭。分享令牌应像访问凭据一样保管；任何拿到链接的人都能看到项目当前保存的内容及关联展示数据。已签出的 S3 下载 URL 在其最多 5 分钟有效期内仍可访问。
+
+公开链接分享与生产交付验收是两个流程；模型映射、数据源连通性、字段阈值、性能和版本等交付检查仍按本仓库 `AGENTS.md` 执行。Cloudflare Worker 验证环境尚未实现公开发布，需使用 Java 后端。
+
+## 可配置点位驱动（V4）
+
+`shared/twin-drive.ts` 是唯一字段契约。`GET/PUT /api/v1/projects/{id}/twin-drive` 使用独立 `twin_drive_documents` 版本，不混入场景设置或封面。保存提交 `{expectedRevision,config}`，读取返回 `{projectId,revision,config,editable}`；版本冲突返回 `409 twin_revision_conflict`。配置包含工程点位、业务资产/指标、模型实例/资源/节点名、位移/旋转/姿态/显示绑定、碰撞盒/配对和顺控步骤。可选 `description`（最多 4000 字符）用于公开案例能力与未实现事项。节点存在性和唯一性由加载真实 GLB 的浏览器验证，后端验证项目、资产、实例、资源、绑定层级和数值范围。驱动实例不能同时播放原生动画；改场景/资源或重命名被引用资产 ID 需要先修改绑定。
+
+点位可配置唯一的精确 `topic`（1–200 字符，仅字母、数字、`.`、`_`、`:`、`/`、`-`，首字符必须是字母或数字）。可选 `simulation: {enabled,procedureId,repeat}` 是用户保存的后端自动源配置；启用时必须同时启用数据驱动、配置点位/模型绑定、为所有点位填写 topic 并选择已有顺控。API 服务每 100 ms 在独立的 `twinAutomaticTaskScheduler` 上调度、每秒发现已保存配置，不与 WebSocket 发布或其他定时任务共用执行线程；它无需任何浏览器连接、订阅或命令即可初始化并运行，关闭全部预览页仍继续生产数据。配置未启用 automatic 时保留旧的手动模式，不自动初始化。
+
+同源 Cookie WebSocket `/api/v1/twin-drive?projectId=…` 握手精确校验 Origin，连接期间重复检查会话、项目权限及 Origin；只有 owner/editor/管理员可以手动命令，viewer 可以订阅观察。读取文档、封面、自动源快照以及订阅都不启动或推进自动源。订阅和自动快照只在 PostgreSQL 项目锁内读取配置/已持久化样本，不争抢 Redis 积分租约；多个观察者连接不会因生产者持有租约而收到 twin_runtime_busy。协议版本 1：
+
+```js
+// 收到 hello 后订阅此项目当前配置版本的完整精确 topic 集合，不允许通配符、跨项目或部分订阅。
+ws.send(JSON.stringify({type:'subscribe', expectedRevision,
+  topics:['changsha/lift/position','changsha/conveyor/position']}));
+// 服务先确认 subscribed {revision,topics}，然后发送 snapshot，点位样本会带配置的 topic。
+// 仅旧的未配置 topic 项目允许直接收快照；config_changed 后必须重新读取配置并订阅。
+// 下列命令仅手动模式可用；automatic 启用时全部返回 409 twin_automatic_mode。
+ws.send(JSON.stringify({type:'command', commandId:crypto.randomUUID(), expectedRevision,
+  operation:'reset'})); // 手动模式明确初始化配置中的 initialValue
+ws.send(JSON.stringify({type:'command', commandId:crypto.randomUUID(), expectedRevision,
+  operation:'move', values:[{pointId:'lift-position',value:12}]}));
+// 其他 operation：set、pause、resume、run-procedure（需 procedureId）、stop-procedure。
+// set 是注入实际值；move 是设备模拟器以配置 maxSpeed 向目标积分，浏览器只应用实际值。
+// 每 10 秒发送 {type:'ping'}，服务返回 pong；45 秒未收到客户端消息则关闭。
+```
+
+服务发送 `hello`、`subscribed {revision,topics}`、约 10 Hz 全量 `snapshot`、`command_ack {commandId,sequence}`、`error {commandId?,error,message}` 和 `config_changed {revision}`。错误 topic 返回 `400 twin_topic_subscription_invalid`，旧版本返回 `409 twin_revision_conflict`。快照带项目、配置版本、序号、时间、`source:simulator`、idle/running/paused/error 状态、点位实际值/目标值/质量/时间/topic 及顺控状态。初始 idle 的 points 为空，不伪造采样。浏览器断线时按 staleAfterMs 冻结本地模型、不外推，后端自动源照常运行；重连按最新实际值显示。
+
+自动执行器真正超过一秒未推进（如 API 停机、持续锁竞争）进入明确 error，保留实际值，不补跑停机时间。错误文本会要求编辑者重新保存配置后重启；本阶段不会静默恢复。手动模式对应情况保持原先 paused，需明确 resume/reset。保存新配置生成新 revision，旧样本作废、客户端收到 config_changed 后重新订阅；新配置若启用自动源，下一轮后端调度从配置 initialValue 明确重新初始化，否则回到 idle。该重新初始化是配置保存的语义，不是每次打开预览重新播放。
+
+顺控只在当前步骤所有实际点位到达目标容差后推进；timeoutMs 只用于报错，绝不是定时切下一动作。自动源 repeat 在末步实际到位后回到首步目标，保留所有实际值，不 reset 或瞬移；用户应在顺控中配置返程目标。失败停在原步骤并公开错误；手动暂停时间不计超时，手动顺控时 set/move 被拒绝。碰撞为浏览器场景中配置盒的重叠事件，并非经过认证的物理引擎或安全 PLC 联锁；topic 是本项目 WebSocket 订阅标识，不代表已接入 MQTT broker、上游 PLC 或真实设备控制。
+
+运行状态由 Valkey 项目同槽 key 保存（空闲 24 小时过期），5 秒带 token 的租约及 Lua 写入栅栏防止多个 API 同时积分。自动源仅调度器积分，任意观察者只读取相同状态；同一时刻多个 API tick 不会重复积分。调度器按数据库真实 tenant/project 配对运行，不冒充用户，逐项目重查配置并加项目行锁。缓存丢失时，已明确启用的自动配置从 initialValue 重新启动；手动配置回到 idle。暂时锁竞争跳过本轮，不伪造新样本，持续故障记录项目/租户日志并显露为陈旧或 error。命令 ID 去重窗口为最近 128 个成功命令、同配置版本且运行缓存尚在；相同 ID 不同内容明确冲突，不承诺无限期/跨 Valkey 数据丢失的恰好一次。配置与命令进入审计日志；Redis 和 PostgreSQL 之间无跨存储事务，失败会明确报告命令结果不确定，客户端不得盲目自动重发。
+
+预算：配置 512 KiB，点位/绑定各 128、碰撞盒 64、碰撞规则 128、顺控 16（每个 64 步）、每个姿态绑定 64 个采样姿态；每项目每秒 20 条成功命令。最多 128 个已启用自动源项目，保存时由 PostgreSQL advisory transaction lock 串行校验总量，调度发现有界且超量明确报错。每 API 最多 128 条驱动连接、输入 32 KiB、单连接每秒 40 条消息、发送缓冲 512 KiB/超时 5 秒。上限不是压测后的吞吐承诺。
+
+回归：`TwinDriveDocumentsTest`、`TwinDriveEngineTest`、`TwinDriveRuntimeTest`、`TwinDriveWebSocketTest` 覆盖契约、引用与原生动画冲突、范围、实际位置驱动、到位顺控/超时/暂停、自动返程循环、无观察者运行、观察读取无副作用、命令隔离、精确 topic/版本订阅、配置版本失效、去重/权限/栅栏/速率、多观察者复用与会话撤销。
 
 ## 公共流体配置
 

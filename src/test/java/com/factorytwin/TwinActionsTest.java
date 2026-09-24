@@ -16,7 +16,7 @@ class TwinActionsTest {
   final Contracts contracts = new Contracts();
   final JdbcTemplate db = mock(JdbcTemplate.class);
   final Projects projects = spy(new Projects(db, mock(Auth.class), mock(TransactionTemplate.class), mock(ProjectCovers.class), contracts));
-  final Auth.User user = new Auth.User("user", "tenant", "user@example.invalid", "user", "User", "delivery_manager");
+  final Auth.User user = new Auth.User("user", "tenant", "user@example.invalid", "user", "User", "delivery_manager", true, true);
 
   ObjectNode message() { return Json.obj("type", "message", "title", "设备", "text", "设备已选中\n查看详情"); }
   ObjectNode node(String id, String type) { return Json.obj("id", id, "type", type, "props", Json.obj()); }

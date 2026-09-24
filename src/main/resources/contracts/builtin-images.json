@@ -1,0 +1,46 @@
+[
+  {
+    "id": "builtin:industry-production-v1",
+    "name": "智能制造产线",
+    "contentPath": "/images/industry/production-v1.png",
+    "originalFilename": "智能制造产线.png",
+    "format": "png",
+    "contentType": "image/png",
+    "byteSize": 2561756,
+    "sha256": "f4aa36ceb31f30afb63cb99788a1ed0ba9244801233d6b0346f88abf39f6c34e",
+    "createdAt": "2026-09-24T00:00:00.000Z"
+  },
+  {
+    "id": "builtin:industry-logistics-v1",
+    "name": "仓储物流场景",
+    "contentPath": "/images/industry/logistics-v1.png",
+    "originalFilename": "仓储物流场景.png",
+    "format": "png",
+    "contentType": "image/png",
+    "byteSize": 2875196,
+    "sha256": "e51efb24231d53ff4cc8892c25a6c7de4557e213fe5a3cb263b3275155fa55ba",
+    "createdAt": "2026-09-24T00:00:00.000Z"
+  },
+  {
+    "id": "builtin:industry-park-v1",
+    "name": "智慧园区鸟瞰",
+    "contentPath": "/images/industry/park-v1.png",
+    "originalFilename": "智慧园区鸟瞰.png",
+    "format": "png",
+    "contentType": "image/png",
+    "byteSize": 3040499,
+    "sha256": "dd9c4da01c43821e8ddcd9a00ea977f34e063b161cabef4eb9506e7622550032",
+    "createdAt": "2026-09-24T00:00:00.000Z"
+  },
+  {
+    "id": "builtin:industry-energy-flow-v1",
+    "name": "能源流向连线",
+    "contentPath": "/images/industry/energy-flow-v1.svg",
+    "originalFilename": "能源流向连线.svg",
+    "format": "svg",
+    "contentType": "image/svg+xml",
+    "byteSize": 2650,
+    "sha256": "b2f0677c1fa0cc8629f809d18653ace88cb3ac895fef98693cb7d64c11be2c43",
+    "createdAt": "2026-09-24T00:00:00.000Z"
+  }
+]
