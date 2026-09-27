@@ -22,6 +22,11 @@ public class RuntimeState {
     return "twin:{" + tenant + ":" + project + "}";
   }
 
+  static JsonNode metricTimestamp(JsonNode state) {
+    return state.hasNonNull("sourceTimestamp")
+        ? state.path("sourceTimestamp") : state.path("collectedAt");
+  }
+
   static final DefaultRedisScript<String> PUBLISH =
       new DefaultRedisScript<>(
           """
@@ -205,6 +210,14 @@ public class RuntimeState {
               b.path("valueType"),
               "unit",
               b.path("unit"),
+              "sourceId",
+              source,
+              "timestamp",
+              metricTimestamp(state),
+              "collectedAt",
+              state.path("collectedAt"),
+              "quality",
+              "good",
               "staleAfterSeconds",
               maxAge));
       stale = Math.min(stale, maxAge);

@@ -12,12 +12,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class Contracts {
   private static final Logger log = LoggerFactory.getLogger(Contracts.class);
-  final JsonNode root, builtins, minimumSizes, limits;
+  final JsonNode root, builtins, builtinImages, minimumSizes, limits;
   final Map<String, JsonSchema> validators = new HashMap<>();
 
   public Contracts() {
     root = resource("configuration.schema.json");
     builtins = resource("builtin-models.json");
+    builtinImages = resource("builtin-images.json");
     minimumSizes = resource("canvas-minimum-sizes.json");
     limits = resource("scene-limits.json");
   }
@@ -81,11 +82,79 @@ public class Contracts {
 
   public void normalizeScenePatch(ObjectNode patch) {
     if (patch.path("settings") instanceof ObjectNode settings) normalizeSceneSettings(settings);
+    if (!patch.has("upsertInstances")) patch.putArray("upsertInstances");
+    if (!patch.has("deleteInstanceIds")) patch.putArray("deleteInstanceIds");
     // Non-object settings remain untouched so schema validation reports the actual error.
+  }
+
+  /** The generated schema owns every field/range; these are cross-entry geometry constraints. */
+  public void fluids(JsonNode fluids) {
+    validate("StandaloneScenePatch", Json.obj("expectedRevision", 0, "upsertInstances", java.util.List.of(),
+        "deleteInstanceIds", java.util.List.of(), "fluids", fluids));
+    Set<String> ids = new HashSet<>();
+    for (JsonNode fluid : fluids) {
+      String id = fluid.path("id").asText();
+      Json.require(ids.add(id), "Duplicate fluid id: " + id);
+      JsonNode previous = null;
+      int index = 0;
+      for (JsonNode point : fluid.path("points")) {
+        boolean identical = previous != null;
+        for (int axis = 0; axis < 3; axis++) {
+          Json.require(Double.isFinite(point.get(axis).asDouble()), "Fluid " + id + " point " + index + " must be finite.");
+          if (previous != null && previous.get(axis).asDouble() != point.get(axis).asDouble()) identical = false;
+        }
+        Json.require(!identical, "Fluid " + id + " point " + index + " must differ from the previous point.");
+        previous = point;
+        index++;
+      }
+      for (String field : List.of("radius", "speed", "spread", "opacity"))
+        Json.require(Double.isFinite(fluid.path(field).asDouble()), "Fluid " + id + " " + field + " must be finite.");
+    }
+  }
+
+  /** Persist fluids in the existing scene settings JSONB, exposing a sibling field over the API. */
+  public ObjectNode sceneSettingsFromStorage(ObjectNode stored) {
+    ObjectNode settings = stored.deepCopy();
+    settings.remove("fluids");
+    for (String field : SceneExtensions.FIELDS) settings.remove(field);
+    return normalizeSceneSettings(settings);
+  }
+
+  public JsonNode sceneFluidsFromStorage(ObjectNode stored) {
+    if (!stored.has("fluids")) return Json.M.createArrayNode(); // Only absent legacy data defaults.
+    JsonNode fluids = stored.get("fluids");
+    try { fluids(fluids); }
+    catch (ApiException error) {
+      throw new ApiException(500, "invalid_scene_storage", "Stored scene fluids are invalid: " + error.getMessage());
+    }
+    return fluids.deepCopy();
+  }
+
+  public ObjectNode sceneStorageAfterPatch(ObjectNode stored, ObjectNode patch) {
+    JsonNode fluids = patch.has("fluids") ? patch.get("fluids") : sceneFluidsFromStorage(stored);
+    fluids(fluids);
+    ObjectNode next = patch.has("settings")
+        ? ((ObjectNode) patch.get("settings")).deepCopy() : sceneSettingsFromStorage(stored);
+    next.set("fluids", fluids.deepCopy());
+    for (String field : SceneExtensions.FIELDS) {
+      JsonNode value = patch.has(field) ? patch.get(field) : SceneExtensions.fromStorage(stored, field);
+      SceneExtensions.validate(field, value);
+      next.set(field, value.deepCopy());
+    }
+    Json.require(next.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8).length
+        <= SceneExtensions.SETTINGS_BYTES, "Scene settings and extensions exceed 1 MiB.");
+    return next;
   }
 
   public JsonNode builtin(String id) {
     for (JsonNode n : builtins) if (n.path("id").asText().equals(id)) return n;
+    return null;
+  }
+
+  public JsonNode builtinResource(String kind, String id) {
+    if (kind.equals("model")) return builtin(id);
+    if (kind.equals("image"))
+      for (JsonNode image : builtinImages) if (image.path("id").asText().equals(id)) return image;
     return null;
   }
 

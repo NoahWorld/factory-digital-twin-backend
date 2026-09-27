@@ -21,7 +21,7 @@ class ProjectCoversTest {
   final ProjectCovers covers = mock(ProjectCovers.class);
   final Projects projects = spy(new Projects(db, auth, tx, covers, new Contracts()));
   final ProjectCoverController controller = new ProjectCoverController(projects, covers);
-  final Auth.User user = new Auth.User("user", "tenant", "user@example.invalid", "user", "User", "delivery_manager");
+  final Auth.User user = new Auth.User("user", "tenant", "user@example.invalid", "user", "User", "delivery_manager", true, true);
 
   MockHttpServletRequest authorizedRequest() {
     var request = new MockHttpServletRequest();

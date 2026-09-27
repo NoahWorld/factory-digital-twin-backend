@@ -2,6 +2,10 @@
 
 ## 仓库范围
 
+- 当前 Owner 要求在本仓库 `main` 与平台前端 `main` 配套开发；本轮既有能力同步及四项场景功能已完成本地验证，Owner 已授权提交并推送到两个仓库的 `main`，不包含外部部署。原平台 `newpower` 目标保持暂停。
+- `decorations`、`roomAlarms`、`staticMap` 通过原 scene 文档事务保存；settings-only 保留它们及 fluids，省略不清空。报警使用业务 assetId/metricKey 和实例/资源引用，每个 metric 的时间与 sourceId 必须对应，不能取其它源的聚合时间。几何预算及结构由平台共享定义生成，Java补语义与最终引用检查。
+- 固定版本捕获应识别内置模型和内置图片的不可变 ID，不查询虚构的上传资源；单数公开分享与复数固定版本保持各自既有语义。
+
 - 本仓库只包含 Java 21 + Spring Boot 后端；前端和平台级编排位于 `NoahWorld/factory-digital-twin-platform`。
 - `src/main/resources/contracts/` 是与前端共享契约的已生成快照。修改契约时必须在平台仓库重新生成，并同步更新这里的文件与测试。
 - 场景和 `model-3d` 的 `preventBottomView` 是默认开启的正式布尔配置。Java 从生成契约补齐旧文档中缺失的字段，保留显式 `false`，拒绝 `null` 和非布尔值；新项目、场景读取、保存与资源 manifest 必须返回一致设置，不维护浏览器专用副本。

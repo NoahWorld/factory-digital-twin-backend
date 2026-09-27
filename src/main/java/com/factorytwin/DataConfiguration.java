@@ -92,6 +92,12 @@ public class DataConfiguration {
           validate(type, body);
           String table = TYPES.get(type);
           if (type.equals("assets")) {
+            if (!create) {
+              String previous = (String) row(u, project, type, id).get("asset_key");
+              TwinDriveDocuments.guardAssetRename(p, u, project, previous, body.path("assetId").asText());
+              if (!previous.equals(body.path("assetId").asText()))
+                SceneExtensions.guardSourceChange(p, u, project, previous, null);
+            }
             if (create)
               p.db.update(
                   "INSERT INTO assets(id,tenant_id,project_id,asset_key,body)"
@@ -171,7 +177,14 @@ public class DataConfiguration {
             if (rows.isEmpty())
               throw new ApiException(404, "binding_not_found", "Binding not found.");
             body = (ObjectNode) Json.parse(rows.getFirst().get("body").toString());
+            String priorKey = body.path("metricKey").asText();
+            String priorType = body.path("valueType").asText();
             body.setAll(input);
+            if (!priorKey.equals(body.path("metricKey").asText())
+                || !priorType.equals(body.path("valueType").asText())) {
+              String assetKey = (String) row(u, project, "assets", asset).get("asset_key");
+              SceneExtensions.guardSourceChange(p, u, project, assetKey, priorKey);
+            }
           }
           if (!body.has("unit")) body.putNull("unit");
           c.validate("AssetDataBindingCreateInput", body);
@@ -317,15 +330,18 @@ class DataController {
       @PathVariable String id,
       HttpServletRequest r) {
     var u = d.p.auth.require(r);
-    d.p.access(u, project, true);
-    int n =
-        d.p.db.update(
-            "DELETE FROM data_bindings WHERE tenant_id=? AND project_id=? AND asset_id=? AND id=?",
-            u.tenant(),
-            project,
-            asset,
-            id);
-    if (n == 0) throw new ApiException(404, "binding_not_found", "Binding not found.");
+    d.p.tx.executeWithoutResult(st -> {
+      d.p.lock(u, project);
+      d.p.access(u, project, true);
+      var rows = d.p.db.queryForList("SELECT metric_key FROM data_bindings"
+          + " WHERE tenant_id=? AND project_id=? AND asset_id=? AND id=?",
+          u.tenant(), project, asset, id);
+      if (rows.isEmpty()) throw new ApiException(404, "binding_not_found", "Binding not found.");
+      String assetKey = (String) d.row(u, project, "assets", asset).get("asset_key");
+      SceneExtensions.guardSourceChange(d.p, u, project, assetKey, (String) rows.getFirst().get("metric_key"));
+      d.p.db.update("DELETE FROM data_bindings WHERE tenant_id=? AND project_id=? AND asset_id=? AND id=?",
+          u.tenant(), project, asset, id);
+    });
   }
 
   @GetMapping("/assets/{asset}/runtime-state")

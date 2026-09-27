@@ -111,13 +111,16 @@ public class Documents {
       doc.set("theme", Json.parse(row.get("settings").toString()));
       doc.set("nodes", Json.M.valueToTree(items));
     } else {
-      doc.set("settings", contracts.normalizeSceneSettings((ObjectNode) Json.parse(row.get("settings").toString())));
+      var stored = (ObjectNode) Json.parse(row.get("settings").toString());
+      doc.set("settings", contracts.sceneSettingsFromStorage(stored));
+      doc.set("fluids", contracts.sceneFluidsFromStorage(stored));
+      for (String field : SceneExtensions.FIELDS) doc.set(field, SceneExtensions.fromStorage(stored, field));
       doc.set("instances", Json.M.valueToTree(items));
       doc.set("linked2dProjectId", Json.M.valueToTree(row.get("linked_project_id")));
     }
     boolean editable =
         u.admin() || Set.of("owner", "editor").contains(project.path("projectRole").asText());
-    return Json.obj(
+    ObjectNode response = Json.obj(
         "project",
         project,
         kind,
@@ -126,13 +129,21 @@ public class Documents {
         editable,
         "limits",
         kind.equals("scene") ? contracts.limits : null);
+    if (kind.equals("scene")) response.put("sceneExtensionsVersion", 1);
+    return response;
   }
 
   @Transactional
   public ObjectNode patch(Auth.User u, String id, String kind, ObjectNode b) {
     if (kind.equals("canvas")) contracts.normalizeCanvasPatch(b);
-    else contracts.normalizeScenePatch(b);
+    else {
+      SceneExtensions.shallowBudget(b);
+      contracts.normalizeScenePatch(b);
+    }
     contracts.validate(kind.equals("canvas") ? "CanvasPatch" : "StandaloneScenePatch", b);
+    if (kind.equals("scene") && b.has("fluids")) contracts.fluids(b.get("fluids"));
+    if (kind.equals("scene")) for (String field : SceneExtensions.FIELDS)
+      if (b.has(field)) SceneExtensions.validate(field, b.get(field));
     long expected = Json.integer(b, "expectedRevision", 0, 9007199254740991L);
     p.access(u, id, true);
     p.lock(u, id);
@@ -159,7 +170,7 @@ public class Documents {
     JsonNode upserts = b.path(itemsKey), deletes = b.path(deleteKey);
     Json.require(upserts.size() + deletes.size() <= 100, "A patch can change at most 100 items.");
     Json.require(
-        upserts.size() + deletes.size() > 0 || b.has(settingsKey) || b.has("linked2dProjectId"),
+        upserts.size() + deletes.size() > 0 || b.has(settingsKey) || b.has("linked2dProjectId") || b.has("fluids") || SceneExtensions.changed(b),
         "A patch must contain a change.");
     Set<String> changed = new HashSet<>();
     for (JsonNode item : upserts) {
@@ -215,11 +226,15 @@ public class Documents {
           id,
           d.asText());
     }
-    if (b.has(settingsKey)) {
-      Contracts.appearance(b.path(settingsKey));
+    if (b.has(settingsKey) || (kind.equals("scene") && (b.has("fluids") || SceneExtensions.changed(b)))) {
+      JsonNode storedSettings = kind.equals("scene")
+          ? contracts.sceneStorageAfterPatch((ObjectNode) Json.parse(row.get("settings").toString()), b)
+          : b.path(settingsKey);
+      if (kind.equals("scene")) Contracts.appearance(contracts.sceneSettingsFromStorage((ObjectNode) storedSettings));
+      else Contracts.appearance(storedSettings);
       p.db.update(
           "UPDATE documents SET settings=?::jsonb WHERE tenant_id=? AND project_id=?",
-          b.path(settingsKey).toString(),
+          storedSettings.toString(),
           u.tenant(),
           id);
     }
@@ -253,6 +268,13 @@ public class Documents {
         ? (b.has("linked2dProjectId") ? (b.path("linked2dProjectId").isNull() ? null : b.path("linked2dProjectId").asText()) : (String) row.get("linked_project_id"))
         : null;
     TwinActions.validate(p, contracts, u, id, kind, linkedProjectId, finalItems);
+    if (kind.equals("scene")) {
+      SceneExtensions.validateReferences(p, u, id, linkedProjectId,
+          Json.parse(p.db.queryForObject("SELECT settings::text FROM documents WHERE tenant_id=? AND project_id=?",
+              String.class, u.tenant(), id)), finalItems);
+      TwinDriveDocuments.guardScene(p, u, id,
+          b.has("settings") ? b.path("settings") : Json.parse(row.get("settings").toString()), finalItems);
+    }
     p.db.update(
         "UPDATE documents SET revision=revision+1,updated_at=now() WHERE tenant_id=? AND"
             + " project_id=? AND revision=?",
@@ -273,12 +295,16 @@ public class Documents {
             "upserts",
             upserts.size(),
             "deletes",
-            deletes.size()));
+            deletes.size(),
+            "fluidsReplaced",
+            b.has("fluids"),
+            "fluidCount",
+            b.has("fluids") ? b.path("fluids").size() : null));
     return read(u, id, kind);
   }
 
   public JsonNode resource(Auth.User u, String project, String id, String kind) {
-    JsonNode builtin = kind.equals("model") ? contracts.builtin(id) : null;
+    JsonNode builtin = contracts.builtinResource(kind, id);
     if (builtin != null) return builtin;
     var rows =
         p.db.queryForList(
@@ -310,18 +336,14 @@ public class Documents {
             (r, i) -> Json.parse(r.getString(1)),
             u.tenant(),
             id);
-    Json.require(items.size() <= 128, "Scene exceeds 128 instances.");
+    JsonNode stored = Json.parse(p.db.queryForObject(
+        "SELECT settings::text FROM documents WHERE tenant_id=? AND project_id=?", String.class,
+        u.tenant(), id));
+    SceneExtensions.Budget extensionBudget = SceneExtensions.budget(stored);
+    Json.require(items.size() + extensionBudget.instances() <= 128, "Scene exceeds 128 instances.");
     Set<String> unique = new HashSet<>();
     long bytes = 0, meshes = 0, animated = 0;
-    boolean playAnimations =
-        Json.parse(
-                p.db.queryForObject(
-                    "SELECT settings::text FROM documents WHERE tenant_id=? AND project_id=?",
-                    String.class,
-                    u.tenant(),
-                    id))
-            .path("playAnimations")
-            .asBoolean();
+    boolean playAnimations = stored.path("playAnimations").asBoolean();
     for (JsonNode item : items) {
       String rid = item.path("modelAssetId").asText();
       JsonNode model = resource(u, id, rid, "model");
@@ -332,7 +354,10 @@ public class Documents {
           && model.path("inspection").path("animationCount").asInt() > 0) animated++;
     }
     Json.require(
-        unique.size() <= 24 && bytes <= 150L * 1024 * 1024 && meshes <= 6000 && animated <= 24,
+        unique.size() <= 24 && bytes <= 150L * 1024 * 1024
+            && meshes + extensionBudget.meshes() <= 6000
+            && animated + extensionBudget.animated() <= 24
+            && extensionBudget.triangles() <= 250000,
         "Scene exceeds model/byte/mesh/animation budget.");
   }
 
@@ -402,8 +427,13 @@ class DocumentController {
             u.tenant(),
             id);
     row.put("settings", Json.parse(row.get("settings").toString()));
-    if (row.get("kind").equals("scene"))
-      row.put("settings", contracts.normalizeSceneSettings((ObjectNode) row.get("settings")));
+    if (row.get("kind").equals("scene")) {
+      var stored = (ObjectNode) row.get("settings");
+      row.put("settings", contracts.sceneSettingsFromStorage(stored));
+      row.put("fluids", contracts.sceneFluidsFromStorage(stored));
+      for (String field : SceneExtensions.FIELDS) row.put(field, SceneExtensions.fromStorage(stored, field));
+      row.put("sceneExtensionsVersion", 1);
+    }
     return row;
   }
 

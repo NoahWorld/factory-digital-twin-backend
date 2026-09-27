@@ -103,7 +103,7 @@ public class Operations implements ApplicationRunner {
         "sceneBackgroundGeneration",
         false,
         "publication",
-        false,
+        true,
         "documentChunks",
         true);
   }
@@ -155,6 +155,16 @@ public class Operations implements ApplicationRunner {
           if (linked + embedded > 0)
             throw new ApiException(
                 409, "project_in_use", "Unlink referencing projects before deleting this project.");
+          int published = p.db.queryForObject(
+              "SELECT count(*) FROM publication_versions WHERE tenant_id=? AND project_id=?",
+              Integer.class, u.tenant(), id);
+          int referenced = p.db.queryForObject(
+              "SELECT count(*) FROM publication_resources pr JOIN resources r ON r.id=pr.resource_id"
+                  + " WHERE r.tenant_id=? AND r.project_id=?",
+              Integer.class, u.tenant(), id);
+          if (published + referenced > 0)
+            throw new ApiException(409, "project_has_publications",
+                "A published version retains this project or its resources; delete is blocked.");
           var objects =
               p.db.queryForList(
                   "SELECT * FROM resources WHERE tenant_id=? AND project_id=?", u.tenant(), id);
@@ -164,6 +174,8 @@ public class Operations implements ApplicationRunner {
                 "resource_processing",
                 "Wait for resource processing before deleting this project.");
           for (var object : objects) resources.deleteObject(object);
+          p.db.update("DELETE FROM resources WHERE tenant_id=? AND project_id=? AND source_model_id IS NOT NULL",
+              u.tenant(), id);
           p.db.update("DELETE FROM resources WHERE tenant_id=? AND project_id=?", u.tenant(), id);
           p.db.update("DELETE FROM projects WHERE tenant_id=? AND id=?", u.tenant(), id);
           p.auth.audit(u, id, "project.delete", Json.obj("resources", objects.size()));

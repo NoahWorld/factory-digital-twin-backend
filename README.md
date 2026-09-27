@@ -1,5 +1,17 @@
 # Java 后端：本地运行与交付边界
 
+## 2026-09-27：独立仓库开发与场景扩展
+
+本仓库 `main` 是 Java 后端修改、构建和契约生成目标；前端及共享 TS 定义仍在平台仓库 `main`。已对齐平台较新的流体、模块权限、点位驱动、内置图片、模型压缩和发布代码。平台中的 `apps/backend` 只保留历史参考，不再作为运行目标。
+
+场景 API 增加同级 `decorations`、`roomAlarms`、`staticMap`，读取响应根返回 `sceneExtensionsVersion: 1`。三字段与原流体在既有 settings JSONB 中保存，使用同一个场景 revision 事务；省略保留、数组 `[]` 和地图 `null` 显式清空。无需为这三个字段新增数据库表。最终实例/资源/业务资产/指标引用、预算和权限由服务端校验；模型内部房间节点的存在与唯一性仍由前端目录及运行层复核。
+
+每个成功返回的运行指标增量携带 `sourceId`、`timestamp`、`collectedAt`、`quality`，报警不会把另一慢源的时间当作火警时间。固定发布快照保留场景扩展，内置图片按不可变白名单 ID 使用；公开分享仍按原约定读取当前保存项目。操作与格式见平台的 `docs/scene-extensions.md`。
+
+在平台执行 `pnpm backend:contracts` / `backend:contracts:check` 会默认写入本仓库；其他目录布局设置绝对路径 `TWIN_BACKEND_DIR`。在本仓库执行 `mvn -B verify`。原生启动时从本仓库根运行，Meshopt worker 默认 `meshopt/worker.mjs`；可用 `TWIN_MESHOPT_WORKER` 显式指定，容器已设置 `/app/meshopt/worker.mjs`。宿主机同时运行 api/collector/worker 时要分配不同 `PORT`，容器中端口则相互隔离。
+
+以下较早运行说明保留集成背景；当前已恢复的固定快照、分享和 Meshopt 能力不再属于后文的旧待实现范围。自动 LOD、上游新协议、凭据解析、可移植离线发布包等不在本轮四项场景能力范围内。
+
 > 本仓库是 Kingdom 3D vision Java 后端的独立代码仓库。可在仓库根目录执行 `mvn -B verify` 完成编译和测试。文中 `pnpm backend:*`、前端联调及本地完整基础设施命令属于[平台仓库](https://github.com/NoahWorld/factory-digital-twin-platform)的集成流程，不包含在本仓库中。
 
 2026-09-17 首版，现已从平台单仓库中的 `apps/backend` 独立发布；Java 21 + Spring Boot 3.5.16 + PostgreSQL 17 + Valkey 8.1 + S3 兼容对象存储。现有 Cloudflare Worker 保留，未切换线上流量或搬迁 D1/R2 数据。

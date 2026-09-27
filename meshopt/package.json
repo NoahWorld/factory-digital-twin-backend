@@ -1,0 +1,15 @@
+{
+  "name": "factory-twin-meshopt-worker",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/worker.ts --bundle --platform=node --format=esm --target=node22 --legal-comments=inline --outfile=worker.mjs"
+  },
+  "dependencies": {
+    "meshoptimizer": "1.1.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.1"
+  }
+}
