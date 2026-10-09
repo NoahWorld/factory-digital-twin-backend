@@ -4848,6 +4848,68 @@
       ],
       "additionalProperties": false
     },
+    "TwinApiConnection": {
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "anyOf": [
+            {
+              "const": "websocket"
+            },
+            {
+              "const": "rest"
+            }
+          ]
+        },
+        "url": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "timestampPath": {
+          "type": "string",
+          "maxLength": 256,
+          "minLength": 1
+        },
+        "intervalMs": {
+          "type": "integer",
+          "minimum": 200,
+          "maximum": 60000
+        },
+        "timeoutMs": {
+          "type": "integer",
+          "minimum": 500,
+          "maximum": 30000
+        },
+        "subscribeMessage": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 8192
+            }
+          ],
+          "minLength": 2,
+          "maxLength": 8192
+        },
+        "redacted": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "protocol",
+        "url",
+        "timestampPath",
+        "intervalMs",
+        "timeoutMs"
+      ],
+      "additionalProperties": false
+    },
     "TwinSimulation": {
       "type": "object",
       "properties": {
@@ -4900,8 +4962,7 @@
         "assetId": {
           "type": "string",
           "maxLength": 80,
-          "minLength": 1,
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,79}$"
+          "pattern": "^(?:[A-Za-z0-9][A-Za-z0-9._:-]{0,79})?$"
         },
         "metricKey": {
           "type": "string",
@@ -4913,6 +4974,16 @@
           "type": "string",
           "maxLength": 32
         },
+        "sourcePath": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 8192
+            }
+          ],
+          "minLength": 1,
+          "maxLength": 256
+        },
         "topic": {
           "anyOf": [
             {
@@ -4923,6 +4994,36 @@
           "minLength": 1,
           "maxLength": 200,
           "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,199}$"
+        },
+        "valueLabels": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "integer",
+                    "minimum": -1000000,
+                    "maximum": 1000000
+                  },
+                  "label": {
+                    "type": "string",
+                    "maxLength": 120,
+                    "minLength": 1,
+                    "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]*(?![\\s\\S])"
+                  }
+                },
+                "required": [
+                  "value",
+                  "label"
+                ],
+                "additionalProperties": false
+              },
+              "maxItems": 64,
+              "minItems": 1
+            }
+          ]
         },
         "min": {
           "type": "number",
@@ -4941,7 +5042,7 @@
         },
         "maxSpeed": {
           "type": "number",
-          "exclusiveMinimum": 0,
+          "minimum": 0,
           "maximum": 1000000
         },
         "staleAfterMs": {
@@ -5328,7 +5429,21 @@
           ]
         },
         "source": {
-          "const": "simulator"
+          "anyOf": [
+            {
+              "const": "simulator"
+            },
+            {
+              "const": "api"
+            }
+          ]
+        },
+        "connection": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/TwinApiConnection"
+            }
+          ]
         },
         "description": {
           "anyOf": [

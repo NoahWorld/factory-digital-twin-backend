@@ -8,7 +8,7 @@
 
 每个成功返回的运行指标增量携带 `sourceId`、`timestamp`、`collectedAt`、`quality`，报警不会把另一慢源的时间当作火警时间。固定发布快照保留场景扩展，内置图片按不可变白名单 ID 使用；公开分享仍按原约定读取当前保存项目。操作与格式见平台的 `docs/scene-extensions.md`。
 
-在平台执行 `pnpm backend:contracts` / `backend:contracts:check` 会默认写入本仓库；其他目录布局设置绝对路径 `TWIN_BACKEND_DIR`。在本仓库执行 `mvn -B verify`。原生启动时从本仓库根运行，Meshopt worker 默认 `meshopt/worker.mjs`；可用 `TWIN_MESHOPT_WORKER` 显式指定，容器已设置 `/app/meshopt/worker.mjs`。宿主机同时运行 api/collector/worker 时要分配不同 `PORT`，容器中端口则相互隔离。
+在平台执行 `pnpm backend:contracts` / `backend:contracts:check` 会默认写入本仓库；其他目录布局设置绝对路径 `TWIN_BACKEND_DIR`。在本仓库执行 `mvn -B verify`；用于启动或部署的 JAR 使用 `mvn -B clean verify`，清除已删除或改名的编译资源后重新打包。迁移资源测试会核对 classpath 中的 SQL 与源目录完全一致，并检查 Flyway 版本唯一；遇到重复迁移先修复构建产物，不修改数据库迁移历史。原生启动时从本仓库根运行，Meshopt worker 默认 `meshopt/worker.mjs`；可用 `TWIN_MESHOPT_WORKER` 显式指定，容器已设置 `/app/meshopt/worker.mjs`。宿主机同时运行 api/collector/worker 时要分配不同 `PORT`，容器中端口则相互隔离。
 
 以下较早运行说明保留集成背景；当前已恢复的固定快照、分享和 Meshopt 能力不再属于后文的旧待实现范围。自动 LOD、上游新协议、凭据解析、可移植离线发布包等不在本轮四项场景能力范围内。
 
@@ -57,7 +57,7 @@ pnpm backend:verify
 pnpm backend:up:prebuilt
 ```
 
-`backend:verify` 包含编译、测试和打包。`prebuilt` 构建仅复制 `apps/backend/target/backend-0.1.0.jar`，修改 Java 后必须先重新打包。本机初始化遇到仓库直连超时，下载阶段使用了本机代理及临时 Maven settings；该网络配置未写入项目。离线交付应预先导出镜像和前端产物，不能依赖现场联网下载。
+`backend:verify` 包含编译、测试和打包。当前 `prebuilt` 交付产物来自本独立仓库的 `target/backend-0.1.0.jar`，修改 Java 或迁移资源后，先在本仓库执行 `mvn -B clean verify` 再重建容器；迁移文件改名后仅执行增量构建可能把历史 SQL 一起打包，导致 Flyway 拒绝启动。本机初始化遇到仓库直连超时，下载阶段使用了本机代理及临时 Maven settings；该网络配置未写入项目。离线交付应预先导出镜像和前端产物，不能依赖现场联网下载。
 
 ```bash
 pnpm backend:logs
@@ -113,41 +113,58 @@ Java 后端支持项目编辑者和管理员发布 2D 或 3D 项目。项目卡�
 
 公开链接分享与生产交付验收是两个流程；模型映射、数据源连通性、字段阈值、性能和版本等交付检查仍按本仓库 `AGENTS.md` 执行。Cloudflare Worker 验证环境尚未实现公开发布，需使用 Java 后端。
 
-## 可配置点位驱动（V5）
+## 接口驱动模型（V5）
 
-`shared/twin-drive.ts` 是唯一字段契约。`GET/PUT /api/v1/projects/{id}/twin-drive` 使用独立 `twin_drive_documents` 版本，不混入场景设置或封面。保存提交 `{expectedRevision,config}`，读取返回 `{projectId,revision,config,editable}`；版本冲突返回 `409 twin_revision_conflict`。配置包含工程点位、业务资产/指标、模型实例/资源/节点名、位移/旋转/姿态/显示绑定、碰撞盒/配对和顺控步骤。可选 `description`（最多 4000 字符）用于公开案例能力与未实现事项。节点存在性和唯一性由加载真实 GLB 的浏览器验证，后端验证项目、资产、实例、资源、绑定层级和数值范围。驱动实例不能同时播放原生动画；改场景/资源或重命名被引用资产 ID 需要先修改绑定。
-
-点位可配置唯一的精确 `topic`（1–200 字符，仅字母、数字、`.`、`_`、`:`、`/`、`-`，首字符必须是字母或数字）。可选 `simulation: {enabled,procedureId,repeat}` 是用户保存的后端自动源配置；启用时必须同时启用数据驱动、配置点位/模型绑定、为所有点位填写 topic 并选择已有顺控。API 服务每 100 ms 在独立的 `twinAutomaticTaskScheduler` 上调度、每秒发现已保存配置，不与 WebSocket 发布或其他定时任务共用执行线程；它无需任何浏览器连接、订阅或命令即可初始化并运行，关闭全部预览页仍继续生产数据。配置未启用 automatic 时保留旧的手动模式，不自动初始化。
-
-同源 Cookie WebSocket `/api/v1/twin-drive?projectId=…` 握手精确校验 Origin，连接期间重复检查会话、项目权限及 Origin；只有 owner/editor/管理员可以手动命令，viewer 可以订阅观察。读取文档、封面、自动源快照以及订阅都不启动或推进自动源。订阅和自动快照只在 PostgreSQL 项目锁内读取配置/已持久化样本，不争抢 Redis 积分租约；多个观察者连接不会因生产者持有租约而收到 twin_runtime_busy。协议版本 1：
+`shared/twin-drive.ts` 是唯一字段契约。`GET/PUT /api/v1/projects/{id}/twin-drive` 使用独立 `twin_drive_documents` revision；保存 `{expectedRevision,config}`，读取 `{projectId,revision,config,editable}`。冲突返回 `409 twin_revision_conflict`。新配置只接受 `source:"api"`：先填写一个 REST 或 WebSocket 接口，测试读取字段，再把数值字段绑定到模型。`assetId` 可以为空，字段映射与平台业务资产编号解耦；仍保留实例/模型资源引用、原生动画排他、绑定层级及有界工程数值校验。驱动实例不能同时播放原生动画。
 
 ```js
-// 收到 hello 后订阅此项目当前配置版本的完整精确 topic 集合，不允许通配符、跨项目或部分订阅。
-ws.send(JSON.stringify({type:'subscribe', expectedRevision,
-  topics:['changsha/lift/position','changsha/conveyor/position']}));
-// 服务先确认 subscribed {revision,topics}，然后发送 snapshot，点位样本会带配置的 topic。
-// 仅旧的未配置 topic 项目允许直接收快照；config_changed 后必须重新读取配置并订阅。
-// 下列命令仅手动模式可用；automatic 启用时全部返回 409 twin_automatic_mode。
-ws.send(JSON.stringify({type:'command', commandId:crypto.randomUUID(), expectedRevision,
-  operation:'reset'})); // 手动模式明确初始化配置中的 initialValue
-ws.send(JSON.stringify({type:'command', commandId:crypto.randomUUID(), expectedRevision,
-  operation:'move', values:[{pointId:'lift-position',value:12}]}));
-// 其他 operation：set、pause、resume、run-procedure（需 procedureId）、stop-procedure。
-// set 是注入实际值；move 是设备模拟器以配置 maxSpeed 向目标积分，浏览器只应用实际值。
-// 每 10 秒发送 {type:'ping'}，服务返回 pong；45 秒未收到客户端消息则关闭。
+connection: {
+  protocol: 'rest', // 或 websocket
+  url: '/api/v1/test-business/handling-cell/state',
+  timestampPath: 'timestamp',
+  intervalMs: 500, // REST 轮询间隔 200–60000 ms
+  timeoutMs: 5000 // 请求/WS 无样本超时 500–30000 ms
+}
+// 点位 sourcePath 如 agv.positionM 或 $.robot.angleDeg；工程范围由 min/max 定义。
+// WebSocket 可填写 subscribeMessage（JSON 对象/数组文本），内置测试 WS 无需发送。
 ```
 
-服务发送 `hello`、`subscribed {revision,topics}`、约 10 Hz 全量 `snapshot`、`command_ack {commandId,sequence}`、`error {commandId?,error,message}` 和 `config_changed {revision}`。错误 topic 返回 `400 twin_topic_subscription_invalid`，旧版本返回 `409 twin_revision_conflict`。快照带项目、配置版本、序号、时间、`source:simulator`、idle/running/paused/error 状态、点位实际值/目标值/质量/时间/topic 及顺控状态。初始 idle 的 points 为空，不伪造采样。浏览器断线时按 staleAfterMs 冻结本地模型、不外推，后端自动源照常运行；重连按最新实际值显示。
+`POST /api/v1/projects/{id}/twin-drive/test-source` 接受 `{connection}`，只允许项目编辑者/管理员，测试未保存的来源并返回 `{timestamp,fields:[{path,type,value}]}`；最多 128 个标量字段，字符串样例最多 256 字符，不保存完整响应。路径只允许最多 8 层字段/三位数组索引，拒绝表达式与原型字段。时间字段必须是 ISO-8601，采集值必须为数值或布尔值且在点位工程范围内。
 
-自动执行器真正超过一秒未推进（如 API 停机、持续锁竞争）进入明确 error，保留实际值，不补跑停机时间。错误文本会要求编辑者重新保存配置后重启；本阶段不会静默恢复。手动模式对应情况保持原先 paused，需明确 resume/reset。保存新配置生成新 revision，旧样本作废、客户端收到 config_changed 后重新订阅；新配置若启用自动源，下一轮后端调度从配置 initialValue 明确重新初始化，否则回到 idle。该重新初始化是配置保存的语义，不是每次打开预览重新播放。
+后端实际请求 REST/WS，上游地址不会交给浏览器。外部 HTTP(S) 来源必须与 `RUNTIME_ALLOWED_ORIGINS` 精确匹配；WS/WSS 按对应 HTTP(S) origin 校验。禁止 URL 用户名密码、凭据 query、片段、重定向及任意内部代理。相对地址只接受下面两个固定测试路径，并固定连接服务器自身 `127.0.0.1:{server.port}`，不信任请求 Host。后端不透传浏览器 Cookie、Origin 或其他认证头。只读/公开文档对外部来源返回 `url:"",redacted:true` 并移除订阅报文；两个公开合成测试路径保留用于清楚标识测试来源。只读脱敏配置不能保存或测试。
 
-顺控只在当前步骤所有实际点位到达目标容差后推进；timeoutMs 只用于报错，绝不是定时切下一动作。自动源 repeat 在末步实际到位后回到首步目标，保留所有实际值，不 reset 或瞬移；用户应在顺控中配置返程目标。失败停在原步骤并公开错误；手动暂停时间不计超时，手动顺控时 set/move 被拒绝。碰撞为浏览器场景中配置盒的重叠事件，并非经过认证的物理引擎或安全 PLC 联锁；topic 是本项目 WebSocket 订阅标识，不代表已接入 MQTT broker、上游 PLC 或真实设备控制。
+公开合成测试接口无需登录，始终由后端时钟生成同一搬运单元状态：
 
-运行状态由 Valkey 项目同槽 key 保存（空闲 24 小时过期），5 秒带 token 的租约及 Lua 写入栅栏防止多个 API 同时积分。自动源仅调度器积分，任意观察者只读取相同状态；同一时刻多个 API tick 不会重复积分。调度器按数据库真实 tenant/project 配对运行，不冒充用户，逐项目重查配置并加项目行锁。缓存丢失时，已明确启用的自动配置从 initialValue 重新启动；手动配置回到 idle。暂时锁竞争跳过本轮，不伪造新样本，持续故障记录项目/租户日志并显露为陈旧或 error。命令 ID 去重窗口为最近 128 个成功命令、同配置版本且运行缓存尚在；相同 ID 不同内容明确冲突，不承诺无限期/跨 Valkey 数据丢失的恰好一次。配置与命令进入审计日志；Redis 和 PostgreSQL 之间无跨存储事务，失败会明确报告命令结果不确定，客户端不得盲目自动重发。
+- `GET /api/v1/test-business/handling-cell/state`：轮询读取。
+- `WS /api/v1/test-business/handling-cell/live`：每 200 ms 推送。浏览器 Origin 仍必须与 `ALLOWED_ORIGINS` 精确匹配；内部采集仅在实际远端为 loopback 时允许固定自身 Origin。
 
-预算：配置 512 KiB，点位/绑定各 128、碰撞盒 64、碰撞规则 128、顺控 16（每个 64 步）、每个姿态绑定 64 个采样姿态；每项目每秒 20 条成功命令。最多 128 个已启用自动源项目，保存时由 PostgreSQL advisory transaction lock 串行校验总量，调度发现有界且超量明确报错。每 API 最多 128 条驱动连接、输入 32 KiB、单连接每秒 40 条消息、发送缓冲 512 KiB/超时 5 秒。上限不是压测后的吞吐承诺。
+两种接口输出相同的真实后端时钟状态，200 ms 采样。业务示例是 64 秒“送检与回收”：载车到站停稳，机械臂夹持抬升并放到检验台，臂收回后空车返程；检验后空车接件，机械臂取回装车并收回，载车带同一个工件返回起点。工件一直存在，AGV→夹爪→检验台→夹爪→AGV 的归属交接都在停稳接触位置发生，循环不瞬移补料。
 
-回归：`TwinDriveDocumentsTest`、`TwinDriveEngineTest`、`TwinDriveRuntimeTest`、`TwinDriveWebSocketTest` 覆盖契约、引用与原生动画冲突、范围、实际位置驱动、到位顺控/超时/暂停、自动返程循环、无观察者运行、观察读取无副作用、命令隔离、精确 topic/版本订阅、配置版本失效、去重/权限/栅栏/速率、多观察者复用与会话撤销。
+- `agv.positionM`：从运输起点沿 +Z 的位移（0–4 m）；`velocityMps`：有符号实际速度；`wheelAngleDeg`：按车轮半径生成的无滑动累计角，不取模。
+- `robot.baseYawDeg/shoulderDeg/elbowDeg/wristDeg`：真实转台及肩、肘、腕角度；`robot.tcp.{xM,yM,zM}`：夹持中心。腕关节补偿保持夹爪朝下。
+- `gripper.openingM`：夹口距离；`cargo.{xM,yM,zM,yawDeg,attachment}`：唯一工件的世界位置、朝向和承载方。
+- `cycle.phaseCode/phase/label`：明确当前工序，22 阶段由共享几何契约提供；`durationMs/elapsedMs`：周期及当前时间。
+- `timestamp/sequence/scenario/geometryVersion`：采样时间、序号、来源与几何版本。旧 `robot.angleDeg` 保留 -60–60 度兼容别名，新示例绑定真实关节字段。
+
+GLB 和后端共同使用平台 `shared/handling-cell-geometry.json`（后端生成副本 `contracts/handling-cell-geometry.json`），禁止各自维护尺寸、轴心或夹持偏移。轨迹采用平滑起停、先抬升再转移、垂直接近表面的路径；关节角由几何 IK 计算，浏览器不计算运动或补料。这些是无实际业务指向的合成读源，没有租户/客户内容；关闭浏览器仍继续推进。替换真实业务接口时修改来源和字段映射即可，平台不会发送设备命令。
+
+API 模式的独立 `twinSourceTaskScheduler` 每 100 ms 组织采集，每秒按数据库保存的 tenant/project 发现启用的 API 配置；实际网络工作使用 8 个有界线程、128 排队预算，最多 128 个启用项目。REST/WS 响应最多 256 KiB、严格单个 JSON 对象、配置超时；WS 实际收样、原生心跳并按 500 ms 起步、最多 30 秒重试。每次尝试有 generation 栅栏，旧连接回调不能覆盖新观察。多 API 可重复只读采集，不积分或控制设备，也无需模拟写租约。
+
+浏览器仍连接同源 Cookie 网关 `/api/v1/twin-drive?projectId=…`（公开预览增加 `share`），持续校验精确 Origin、会话/分享及项目读权限。收到 hello 后订阅当前 revision；API 模式没有 topic：
+
+```js
+ws.send(JSON.stringify({type:'subscribe', expectedRevision, topics:[]}));
+// subscribed 确认后接收 snapshot；config_changed 后重新读取文档并订阅新 revision。
+// 每 10 秒发送 {type:'ping'}；45 秒无客户端心跳关闭。
+```
+
+快照 `source:"api"`、状态 idle/running/error、全量点位实际值/时间/质量。初始 idle 没有样本；缺字段、越界、源时间/序号回退、断线、超时明确进入 error，附安全错误码和 retryCount，保留最后实际值且递增快照序号。日志包含租户、项目、revision、协议、脱敏来源 origin、根异常与重试次数，不记录订阅内容。断线或陈旧时浏览器冻结模型，不外推运动；成功的新实际样本恢复运行。新 revision 作废旧样本。
+
+旧 `source:"simulator"` 文档和用户数据仍可读取用于迁移；旧模拟调度/命令已移除，保存旧配置或调用旧运行接口返回 `410 legacy_simulation_removed`。新 API 配置不接受 simulation、topic 或顺控 procedures。碰撞只作为浏览器配置盒的重叠事件，不是 PLC 安全联锁。
+
+预算：配置 512 KiB、点位/绑定各 128、碰撞盒 64、碰撞规则 128、姿态采样每绑定 64。网关每 API 最多 128 条连接、输入 32 KiB、每连接每秒 40 条消息、发送缓冲 512 KiB/5 秒；测试源 WS 最多 128 连接、输入 8 KiB、发送缓冲 64 KiB/5 秒、原生 ping 15 秒/Pong 超时 45 秒。上限不代表压测吞吐承诺。
+
+回归：`ApiMotionSourcesTest`、`TestBusinessTest`、`TestBusinessNetworkTest` 验证实际 HTTP/WS 每个反馈字段与同一时钟一致、整周期 FK/夹持接触/车轮方向/平滑边界、响应预算、来源权限、无观察者采集、字段错误/序号回退和旧回调栅栏；`TestBusinessTest` 同时导出忽略的 `target/handling-cell-states.json`（20 ms 连续实际轨迹）供独立 GLB 验收；`TwinDriveDocumentsTest`、`TwinDriveRuntimeTest`、`TwinDriveWebSocketTest` 验证共享契约、引用/动画冲突、版本订阅、权限撤销与旧模拟退出。
 
 ## 公共流体配置
 

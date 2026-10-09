@@ -6,12 +6,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
-/** Automatic source lifecycle belongs to the API service, not any browser connection. */
+/** API observation lifecycle belongs to the server, not any browser connection. */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "twin.mode", havingValue = "api")
 public class TwinDriveScheduler {
-  private final TwinDriveRuntime runtime;
-  public TwinDriveScheduler(TwinDriveRuntime runtime) { this.runtime = runtime; }
+  private final ApiMotionSources sources;
+  public TwinDriveScheduler(ApiMotionSources sources) { this.sources = sources; }
   // Explicit default is essential: with just one scheduler bean Spring would share it with publishers.
   @Bean(name = "taskScheduler")
   public ThreadPoolTaskScheduler taskScheduler() {
@@ -20,13 +20,13 @@ public class TwinDriveScheduler {
     return scheduler;
   }
 
-  @Bean(name = "twinAutomaticTaskScheduler")
-  public ThreadPoolTaskScheduler twinAutomaticTaskScheduler() {
+  @Bean(name = "twinSourceTaskScheduler")
+  public ThreadPoolTaskScheduler twinSourceTaskScheduler() {
     var scheduler = new ThreadPoolTaskScheduler();
-    scheduler.setPoolSize(1); scheduler.setThreadNamePrefix("twin-automatic-");
+    scheduler.setPoolSize(1); scheduler.setThreadNamePrefix("twin-source-");
     return scheduler;
   }
 
-  @Scheduled(fixedDelay = 100, scheduler = "twinAutomaticTaskScheduler")
-  public void tick() { runtime.simulateAutomatically(); }
+  @Scheduled(fixedDelay = 100, scheduler = "twinSourceTaskScheduler")
+  public void tick() { sources.collect(); }
 }

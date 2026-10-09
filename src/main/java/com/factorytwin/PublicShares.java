@@ -311,6 +311,8 @@ class PublicShareController {
 
   @GetMapping("/api/v1/publications/projects/{id}/twin-drive")
   Object twinDrive(@PathVariable String id, @RequestParam String share) {
-    return publication.twinDrive.read(publication.reader(share, id), id);
+    var document = publication.twinDrive.read(publication.reader(share, id), id);
+    TwinDriveDocuments.redact(document);
+    return document;
   }
 }

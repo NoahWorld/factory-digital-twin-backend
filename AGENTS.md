@@ -12,18 +12,22 @@
 - 场景和 `model-3d` 的 `preventBottomView` 是默认开启的正式布尔配置。Java 从生成契约补齐旧文档中缺失的字段，保留显式 `false`，拒绝 `null` 和非布尔值；新项目、场景读取、保存与资源 manifest 必须返回一致设置，不维护浏览器专用副本。
 - PostgreSQL 迁移只放在 `src/main/resources/db/migration/`，由 Flyway 管理。
 - 2D/3D 点击动作使用平台仓库的 `shared/twin-actions.ts` 生成契约，Java 在保存文档的同一事务中校验最终节点/实例状态、目标引用及项目权限，失败必须回滚。不得保存任意脚本或绕过关联项目授权；对应回归为 `TwinActionsTest` 和平台仓库的 `pnpm backend:smoke:twin-actions`。
-- 数据驱动采用平台 `shared/twin-drive.ts` 唯一契约，Flyway V5 独立存储 `twin_drive_documents`。`GET/PUT /api/v1/projects/{id}/twin-drive` 使用独立 revision，保存校验业务资产、实例/模型资源引用、原生动画排他及有界工程数值；场景删除/换模型和业务资产 ID 重命名必须保护现存绑定，不自动改绑。
-- `@Transactional` 服务通过 Spring CGLIB 代理调用；调用方不得直接读取被代理服务的实例字段，应使用构造注入依赖或服务方法。控制器首次 GET 和模拟命令回归必须覆盖真实 CGLIB 代理，不能只用未代理的手工实例测试。
-- `/api/v1/twin-drive?projectId=…` 是与遥测 `/realtime` 分离的 Cookie + 精确 Origin 通道，持续复核会话与读权限。点位 topic 为唯一精确标识，收到 hello 后发送带 expectedRevision 的完整 topic 集合，subscribed 确认后才发送有 topic 配置的快照；未知/重复/通配符/部分订阅明确拒绝。config_changed 使订阅失效，必须加载新配置后重订阅，不跨项目路由。订阅、自动快照及自动模式命令拒绝在 PostgreSQL 项目锁内读取，不获取 Redis 积分租约；观察者不得与生产调度争抢写租约。手动操作取得写租约后仍须重查模式与版本。
-- `simulation.enabled` 是用户明确保存的后台自动源配置，必须有完整 topic、模型绑定和有效 procedureId。仅 API 模式的独立 100 ms 调度器运行，数据库发现每秒一次且最多 128 个自动项目；无浏览器/订阅/命令仍持续运行，读取文档/封面/快照/订阅不初始化或积分自动源。顺控仅实际到位推进，repeat 保留实际值循环目标，不能 reset 瞬移或按超时切步骤。自动模式拒绝所有手动命令；旧手动配置保留 reset/set/move/pause 等编辑权限命令。浏览器只能由实际值驱动，断线冻结本地显示，重连使用最新值，不外推运动。
-- 模拟运行态使用 Valkey 同槽 project key、带 token 租约与 Lua 写入栅栏，多个 API 不得重复积分；调度器只使用数据库保存的 tenant/project 配对，不合成管理员。真正超过一秒未调度的自动源进入 error，保留实际值，要求重新保存配置，不静默恢复；浏览器全关闭不停止后台源。新配置版本清空旧样本，自动配置从 initialValue 重启；Valkey 缓存丢失也从明确保存的配置重新初始化。命令有配置版本、最近 128 条有界去重、project 20/s 限速和审计，不能宣称跨缓存丢失/跨存储事务的永久恰好一次。碰撞为配置盒的浏览器重叠事件，不是真实 PLC 安全联锁；topic 不代表已接入 MQTT 或上游 PLC。回归包含 `TwinDriveDocumentsTest`、`TwinDriveEngineTest`、`TwinDriveRuntimeTest`、`TwinDriveWebSocketTest`；协议与预算见 README。
+- 接口驱动采用平台 `shared/twin-drive.ts` 唯一契约，Flyway V5 独立存储 `twin_drive_documents`。新保存仅 `source:"api"`：一个 REST/WS connection、全量点位 sourcePath 与模型绑定；API 的资产 ID 可空，仍校验实例/资源、原生动画排他及工程范围。旧 simulator 文档保留读取用于迁移，但保存/运行/命令明确 `410 legacy_simulation_removed`；不得重新引入模拟调度、initialValue 积分、顺控或 topic 配置。
+- `@Transactional` 服务通过 Spring CGLIB 代理调用；调用方不得直接读取代理实例字段，使用构造注入或服务方法。控制器首次 GET 与源测试回归必须覆盖真实 CGLIB 代理。
+- `ApiMotionSources` 在后端真实采集 REST/WS，禁止下发客户私有地址/订阅凭据到浏览器或透传浏览器 Cookie/Origin。外部来源使用 `RUNTIME_ALLOWED_ORIGINS` 精确白名单，WS 映射 HTTP(S) origin；相对来源只允许固定测试业务两个路径，并构造 loopback+server.port，不读取 Host。禁止 URL 凭据/片段/重定向；256 KiB 单 JSON 对象、时间/字段范围、超时和工作队列均有界。
+- `/api/v1/twin-drive?projectId=…` 使用同源 Cookie + 精确 Origin，持续复核会话/分享与项目读权限。API 收到 hello 后以 expectedRevision/topics:[] 订阅，subscribed 后才能发送快照；config_changed 后重读并订阅。观察不请求网络、不积分、不获得项目写锁/Redis 租约；实际网络仅由独立 100 ms 采集调度+有界工作线程执行，保存租户/项目配对每秒发现。多 API 允许重复只读观察，不控制设备。
+- 初始 idle 没有点位样本。源失败必须显露 error/error code/retryCount，递增快照序号并冻结最后实际值；时间/序号回退拒绝，不伪造运动或默认值。成功的新样本恢复，旧 WS 回调以采集 attempt 栅栏忽略。浏览器关闭不停止已保存来源，浏览器断线/陈旧冻结、不外推。日志保留租户/项目/revision/协议/安全 origin/根异常，不输出源 query 或订阅报文。
+- `POST /projects/{id}/twin-drive/test-source` 仅编辑者测试未保存 connection，返回有界标量 fields/timestamp，不保存完整 JSON。只读/公开文档外部 URL 清空+redacted:true、移除订阅报文，固定公开测试路径保留以显示合成来源；脱敏配置不允许写回。
+- 无租户公开测试业务读源 `/api/v1/test-business/handling-cell/state|live` 使用后端时钟、200 ms 采样。平台 `shared/handling-cell-geometry.json` 导出为后端 generated contract，统一 GLB 尺寸、轴心、TCP、夹指行程与阶段表；后端不可散落几何常量。64 秒“送检与回收”闭环只有一个工件：载车到站停稳→夹持抬升→检验台放件→臂收回→空车返回→检验→空车接件停稳→取回装车→臂收回→成品返回，不瞬移补料。关节 IK、腕垂直补偿、车轮无滑动有符号角、夹口与工件世界位置/朝向/所有权均由后端生成；C1路径先抬升再转台、接近后垂直下降，浏览器只映射反馈。`cycle.phaseCode/label` 来自统一22阶段表；保留旧 `agv.positionM` 与 `robot.angleDeg` 别名，不把旧角度当真实关节。仅合成数据，无客户内容/设备命令。WS仍精确 Origin+128连接+心跳+大小预算，固定自身内部 Origin 必须同时要求实际远端 loopback，不得伪装其他允许来源。
+- `TestBusinessTest` 验证整周期 FK/TCP、停稳夹持、同一工件接触转移无瞬移、车轮方向与C1边界，并生成忽略的 `target/handling-cell-states.json` 20 ms真实轨迹，供独立 GLB 几何检查；不可由浏览器另造一套轨迹自证。
+- 回归为 `ApiMotionSourcesTest`、`TestBusinessTest`、`TestBusinessNetworkTest`、`TwinDriveDocumentsTest`、`TwinDriveRuntimeTest`、`TwinDriveWebSocketTest`，协议与预算见 README。
 
 - 公共流体采用平台 `shared/fluids.ts` 同级 `scene.fluids` 契约，Java 保存于现有 settings JSONB 内部并在 API/manifest 中抽离；settings-only PATCH 保留流体，缺失旧字段读为 `[]`，显式 `null` 非法。流体整数组替换，与模型共用权限、事务、revision 和封面失效；公共 settings 拒绝嵌套 fluids。数量/路径/数值预算由生成 schema 与共享正反样例约束，修改后同步 `FluidContractTest`、`DocumentControllerTest` 并在平台运行 `pnpm backend:smoke:fluids`。
 
 ## 安全要求
 
 - 账号具有独立 `2d`/`3d` 模块授权；V6 保留既有账号两个模块，新账号必须明确指定授权。平台管理员固定拥有两个模块，其他账号的模块授权与项目成员权限共同决定访问范围，每次请求读取数据库授权。管理接口支持编辑资料/角色/模块、重设密码并撤销会话、停用及恢复；不能删除当前管理员自己、移除自身管理员角色或移除最后一个启用的管理员。跨项目引用和点击动作也要校验目标模块权限，回归见 `ModuleAccessTest`。
-- V7 支持编辑者或管理员公开发布项目：每次匿名读取与只读点位推送都重新校验分享令牌和发布范围（最多 32 个关联项目），发布者必须对所有项目有编辑权限。取消或重新发布立即废止旧令牌；已签出的对象存储 URL 最多仍可用 5 分钟。公开点位连接只允许订阅和心跳，控制命令必须拒绝。接口细节见 README，回归见 `PublicSharesTest`、`TwinDriveWebSocketTest`；其他业务接口仍要求登录。
+- V7 支持编辑者或管理员公开发布项目：每次匿名读取与只读点位推送都重新校验分享令牌和发布范围（最多 32 个关联项目），发布者必须对所有项目有编辑权限。取消或重新发布立即废止旧令牌；已签出的对象存储 URL 最多仍可用 5 分钟。公开点位连接只允许订阅和心跳，控制命令必须拒绝。接口细节见 README，回归见 `PublicSharesTest`、`TwinDriveWebSocketTest`；除明确公开的纯合成测试业务读源外，其他业务接口仍要求登录。
 - 不得提交 `.env`、密码、令牌、私钥、客户数据、备份、对象存储内容或 Maven 构建产物。
 - 数据库、Valkey、S3 和初始化令牌必须通过环境变量注入；缺失必需配置时应明确失败，不得使用源码默认密钥。
 - API、采集与任务失败必须保留请求或任务上下文，不得用空返回或假成功掩盖错误。
@@ -34,5 +38,5 @@
 - 项目封面遵循 Flyway V3：只存经过校验的 960 × 540 PNG（最大 2 MiB），不生成概念 SVG。上传 `PUT /api/v1/projects/{id}/cover` 使用 `image/png` 原始字节，必须传 `sourceRevision` 与 `expectedCoverRevision`，在项目、文档和封面锁内验证编辑权限及双版本。成功上传和失效均递增封面版本；文档保存与被引用 3D 场景保存使封面 pending，改名不失效。引用场景变更不得递增 2D 文档版本。pending 可保留最后真实截图，状态与来源版本必须如实返回；无截图明确 404，不造占位图片。读取 PNG 和 ETag 304 必须先验证读权限，缓存保持 private。PNG 不得写入节点 JSON 或公开模型存储。
 - PNG 校验必须有压缩文件大小、固定像素尺寸、块边界/CRC、有界解压和实际解码多层预算；拒绝 APNG、压缩元数据与尾随数据。任何校验/并发错误都应带明确错误码，不能静默替换图片。
 
-- 提交前运行 `mvn -B verify`。
+- 提交前运行 `mvn -B verify`；生成用于启动或部署的 JAR 必须运行 `mvn -B clean verify`，避免迁移资源改名后旧 SQL 留在 `target/classes` 并被再次打包。`MigrationResourcesTest` 校验应用 classpath 与源迁移文件集合、内容一致，且 Flyway 版本唯一；失败时清理生成输出后重新构建，不修改数据库迁移历史来绕过构建错误。
 - 修改 API、数据库迁移、权限或共享契约时，需同时在平台仓库运行相应的集成与前端契约检查。

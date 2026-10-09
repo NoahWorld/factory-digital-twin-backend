@@ -16,7 +16,7 @@ import org.springframework.web.socket.config.annotation.*;
 import org.springframework.web.socket.handler.*;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
-/** Dedicated, authenticated control channel. Opening covers and reading documents never starts it. */
+/** Dedicated authenticated gateway over server-collected API observations. */
 @Configuration
 public class TwinDriveWebSocket extends TextWebSocketHandler implements WebSocketConfigurer {
   final Auth auth;
@@ -172,7 +172,7 @@ public class TwinDriveWebSocket extends TextWebSocketHandler implements WebSocke
 
   @Scheduled(fixedDelay = 100)
   public void push() {
-    // Auto-mode readers never integrate. Legacy manual projects still share one integration per round.
+    // Observers never collect or synthesize motion; each authorization sees server observations.
     Map<String, TwinDriveRuntime.StreamFrame> frames = new HashMap<>();
     for (Connection connection : connections.values()) synchronized (connection) {
       try {
@@ -194,14 +194,11 @@ public class TwinDriveWebSocket extends TextWebSocketHandler implements WebSocke
           send(connection, Json.obj("type", "config_changed", "revision", revision));
           connection.subscribedRevision = -1; connection.topics = Set.of();
         }
-        boolean subscribed = frame.topics().isEmpty() || (connection.subscribedRevision == revision
+        boolean subscribed = (connection.subscribedRevision == revision
             && connection.topics.equals(new HashSet<>(frame.topics())));
         if (subscribed && (revision != connection.revision || sequence != connection.sequence)) send(connection, snapshot);
         connection.revision = revision; connection.sequence = sequence;
       } catch (ApiException error) {
-        // Lock contention is a bounded scheduling outcome, not a successful sample. Clients retain
-        // their last timestamp and therefore detect staleness if contention persists.
-        if (error.code.equals("twin_runtime_busy")) continue;
         failConnection(connection, error, error.status == 401 || error.status == 403
             || (connection.share != null && error.status == 404)
             ? CloseStatus.POLICY_VIOLATION : CloseStatus.SERVER_ERROR);

@@ -15,14 +15,16 @@ public class TwinDriveDocuments {
   static final int MAX_AUTOMATIC_PROJECTS = 128;
   private final Projects p;
   private final Contracts contracts;
+  private final SourceClient sourceClient;
 
-  public TwinDriveDocuments(Projects p, Contracts contracts) {
+  public TwinDriveDocuments(Projects p, Contracts contracts, SourceClient sourceClient) {
     this.p = p;
     this.contracts = contracts;
+    this.sourceClient = sourceClient;
   }
 
   static ObjectNode emptyConfig() {
-    return Json.obj("version", 1, "enabled", false, "source", "simulator", "points", List.of(),
+    return Json.obj("version", 1, "enabled", false, "source", "api", "connection", Json.obj("protocol", "rest", "url", "", "timestampPath", "timestamp", "intervalMs", 500, "timeoutMs", 5000), "points", List.of(),
         "bindings", List.of(), "colliders", List.of(), "collisionRules", List.of(), "procedures", List.of());
   }
 
@@ -38,13 +40,13 @@ public class TwinDriveDocuments {
   record AutomaticProject(String tenant, String project) {}
 
   /** Internal scheduler scope comes exclusively from persisted tenant/project pairs, never a synthetic user. */
-  List<AutomaticProject> automaticProjects() {
+  List<AutomaticProject> apiProjects() {
     var rows = p.db.query("SELECT d.tenant_id,d.project_id FROM twin_drive_documents d JOIN projects p"
         + " ON p.tenant_id=d.tenant_id AND p.id=d.project_id WHERE d.config->>'enabled'='true'"
-        + " AND d.config->'simulation'->>'enabled'='true' ORDER BY d.tenant_id,d.project_id LIMIT ?",
+        + " AND d.config->>'source'='api' ORDER BY d.tenant_id,d.project_id LIMIT ?",
         (r, i) -> new AutomaticProject(r.getString(1), r.getString(2)), MAX_AUTOMATIC_PROJECTS + 1);
     if (rows.size() > MAX_AUTOMATIC_PROJECTS)
-      throw new ApiException(503, "twin_automatic_capacity_exceeded", "Automatic simulator project capacity exceeds 128; disable excess configurations.");
+      throw new ApiException(503, "motion_source_capacity_exceeded", "API source project capacity exceeds 128; disable excess configurations.");
     return rows;
   }
 
@@ -53,12 +55,24 @@ public class TwinDriveDocuments {
     Json.require(access.path("projectType").asText().equals("3d"), "Data-driven motion requires a 3D project.");
     var doc = stored(u.tenant(), project);
     doc.put("editable", u.admin() || Set.of("owner", "editor").contains(access.path("projectRole").asText()));
+    if (!doc.path("editable").asBoolean()) redact(doc);
     return doc;
+  }
+
+  static void redact(ObjectNode document) {
+    if (document.path("config").path("connection").isObject()) {
+      ObjectNode connection = (ObjectNode) document.path("config").path("connection");
+      String url = connection.path("url").asText();
+      if (!Set.of(ApiMotionSources.REST_PATH, ApiMotionSources.WS_PATH).contains(url)) connection.put("url", "").put("redacted", true);
+      connection.remove("subscribeMessage");
+    }
   }
 
   @Transactional
   public ObjectNode save(Auth.User u, String project, ObjectNode input) {
     Json.fields(input, "expectedRevision", "config");
+    if (input.path("config").path("source").asText().equals("simulator"))
+      throw new ApiException(410, "legacy_simulation_removed", "Platform simulation was removed; connect a business REST or WebSocket source.");
     contracts.validate("TwinDrivePatch", input);
     long expected = Json.integer(input, "expectedRevision", 0, 9007199254740990L);
     p.access(u, project, true);
@@ -68,13 +82,14 @@ public class TwinDriveDocuments {
       throw new ApiException(409, "twin_revision_conflict", "Data-drive configuration changed; reload and merge your draft.");
     JsonNode config = input.path("config");
     validate(config);
+    validateOrigin(config.path("connection"));
     validateReferences(u, project, config);
-    if (TwinDriveEngine.automatic(config)) {
+    if (config.path("enabled").asBoolean()) {
       // Serialize admission across tenants/API replicas; subsequent ticks remain tenant scoped.
       p.db.queryForList("SELECT pg_advisory_xact_lock(73190621001)");
       Integer active = p.db.queryForObject("SELECT count(*) FROM twin_drive_documents WHERE project_id<>?"
-          + " AND config->>'enabled'='true' AND config->'simulation'->>'enabled'='true'", Integer.class, project);
-      Json.require(active != null && active < MAX_AUTOMATIC_PROJECTS, "At most 128 automatic simulator projects may run at once.");
+          + " AND config->>'enabled'='true' AND config->>'source'='api'", Integer.class, project);
+      Json.require(active != null && active < MAX_AUTOMATIC_PROJECTS, "At most 128 API source projects may run at once.");
     }
     p.db.update("INSERT INTO twin_drive_documents(tenant_id,project_id,revision,config) VALUES(?,?,?,?::jsonb)"
         + " ON CONFLICT(project_id) DO UPDATE SET revision=excluded.revision,config=excluded.config,updated_at=now()",
@@ -90,11 +105,24 @@ public class TwinDriveDocuments {
     JsonNode settings = Json.parse(p.db.queryForObject(
         "SELECT settings::text FROM documents WHERE tenant_id=? AND project_id=?", String.class, u.tenant(), project));
     validateSceneReferences(config, settings, items);
-    for (JsonNode point : config.path("points")) {
+    if (!config.path("source").asText().equals("api")) for (JsonNode point : config.path("points")) {
       Integer count = p.db.queryForObject("SELECT count(*) FROM assets WHERE tenant_id=? AND project_id=? AND asset_key=?",
           Integer.class, u.tenant(), project, point.path("assetId").asText());
       Json.require(count != null && count == 1, "Point " + point.path("id").asText() + " references an unknown business asset.");
     }
+  }
+
+  void validateOrigin(JsonNode connection) {
+    String address = connection.path("url").asText();
+    if (address.isEmpty() || address.equals(ApiMotionSources.REST_PATH) || address.equals(ApiMotionSources.WS_PATH)) return;
+    java.net.URI uri = java.net.URI.create(address);
+    String scheme = switch (uri.getScheme()) { case "ws" -> "http"; case "wss" -> "https"; default -> uri.getScheme(); };
+    if (!sourceClient.allowed.contains(scheme + "://" + uri.getRawAuthority()))
+      throw new ApiException(403, "source_origin_denied", "Source origin is not in RUNTIME_ALLOWED_ORIGINS.");
+  }
+
+  public void authorizeSourceTest(Auth.User user, String project) {
+    Json.require(p.access(user, project, true).path("projectType").asText().equals("3d"), "Source testing requires edit access to a 3D project.");
   }
 
   static void guardScene(Projects p, Auth.User u, String project, JsonNode settings, List<JsonNode> items) {
@@ -151,6 +179,10 @@ public class TwinDriveDocuments {
 
   /** Semantic checks are deliberately shared in behavior with shared/twin-drive.ts. */
   static void validate(JsonNode config) {
+    if (!config.path("source").asText().equals("api")) throw new ApiException(410, "legacy_simulation_removed", "Platform simulation was removed; connect a business API.");
+    ApiMotionSources.validateConnection(config.path("connection"), !config.path("enabled").asBoolean() && config.path("points").isEmpty());
+    Json.require(!config.has("simulation") && config.path("procedures").isArray() && config.path("procedures").isEmpty(), "API sources do not use platform simulation procedures.");
+    Json.require(!config.path("enabled").asBoolean() || (!config.path("points").isEmpty() && !config.path("bindings").isEmpty()), "Enable API motion only after binding at least one model action.");
     Json.require(config.toString().getBytes(StandardCharsets.UTF_8).length <= 512 * 1024, "Data-drive configuration exceeds 512 KiB.");
     if (config.has("description")) Json.require(config.path("description").isTextual()
         && config.path("description").asText().length() <= 4000, "Description must be a string of at most 4000 characters.");
@@ -161,9 +193,11 @@ public class TwinDriveDocuments {
     var procedures = unique(config.path("procedures"), "procedures", 16);
     Set<String> metrics = new HashSet<>(), driven = new HashSet<>(), topics = new HashSet<>();
     for (JsonNode point : points.values()) {
-      Contracts.identifier(Json.text(point, "assetId", 1, 120));
-      Contracts.identifier(Json.text(point, "metricKey", 1, 120));
-      Json.text(point, "unit", 0, 80);
+      String asset = Json.text(point, "assetId", 0, 80); if (!asset.isEmpty()) Contracts.identifier(asset);
+      Contracts.identifier(Json.text(point, "metricKey", 1, 80));
+      Json.text(point, "unit", 0, 32);
+      ApiMotionSources.pathSyntax(Json.text(point, "sourcePath", 1, 256));
+      Json.require(!point.has("topic"), "API sources use mapped fields, not topic subscriptions.");
       if (point.has("topic")) {
         String topic = Json.text(point, "topic", 1, 200);
         Json.require(topic.matches("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,199}$"), "Point topic must be an exact topic without wildcards.");
@@ -172,8 +206,21 @@ public class TwinDriveDocuments {
       Json.require(metrics.add(point.path("assetId").asText() + "/" + point.path("metricKey").asText()), "Duplicate business asset metric.");
       double min = finite(point.path("min"), "point.min"), max = finite(point.path("max"), "point.max"), initial = finite(point.path("initialValue"), "initialValue");
       double speed = finite(point.path("maxSpeed"), "maxSpeed"), stale = finite(point.path("staleAfterMs"), "staleAfterMs");
-      Json.require(min < max && Double.isFinite(max - min) && initial >= min && initial <= max && speed > 0 && speed <= 1e6
-          && stale >= 500 && stale <= 60000, "Invalid point range, initial value, speed or stale interval.");
+      Json.require(min < max && Math.max(Math.abs(min), Math.abs(max)) <= 1e6 && Double.isFinite(max - min) && Math.abs(initial) <= 1e6 && speed >= 0 && speed <= 1e6
+          && point.path("staleAfterMs").isIntegralNumber() && stale >= 500 && stale <= 60000, "Invalid point range, compatibility value budget or stale interval.");
+      if (point.has("valueLabels")) {
+        JsonNode valueLabels = point.path("valueLabels");
+        Json.require(valueLabels.isArray() && valueLabels.size() >= 1 && valueLabels.size() <= 64, "Feedback labels require 1..64 values.");
+        Set<Long> values = new HashSet<>();
+        for (JsonNode label : valueLabels) {
+          Json.require(label.isObject(), "Feedback labels must be objects.");
+          Json.fields((ObjectNode) label, "value", "label");
+          Json.require(label.path("value").isIntegralNumber() && label.path("value").asDouble() >= min && label.path("value").asDouble() <= max
+              && values.add(label.path("value").asLong()), "Feedback label values must be unique integers within the point range.");
+          String text = Json.text(label, "label", 1, 120);
+          Json.require(!text.isBlank() && text.chars().noneMatch(c -> c < 32 || c >= 127 && c <= 159), "Feedback labels must be readable text.");
+        }
+      }
     }
     for (JsonNode binding : bindings.values()) {
       target(binding.path("target"));
@@ -270,11 +317,17 @@ public class TwinDriveDocuments {
 class TwinDriveController {
   final TwinDriveDocuments documents;
   final Auth auth;
-  TwinDriveController(TwinDriveDocuments documents, Auth auth) { this.documents = documents; this.auth = auth; }
+  final ApiMotionSources sources;
+  TwinDriveController(TwinDriveDocuments documents, Auth auth, ApiMotionSources sources) { this.documents = documents; this.auth = auth; this.sources = sources; }
   @GetMapping Object read(@PathVariable String project, HttpServletRequest request) {
     return documents.read(auth.require(request), project);
   }
   @PutMapping Object save(@PathVariable String project, @RequestBody ObjectNode input, HttpServletRequest request) {
     return documents.save(auth.require(request), project, input);
+  }
+  @PostMapping("/test-source") Object test(@PathVariable String project, @RequestBody ObjectNode input, HttpServletRequest request) {
+    Json.fields(input, "connection");
+    documents.authorizeSourceTest(auth.require(request), project);
+    return sources.test(input.path("connection"));
   }
 }

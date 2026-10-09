@@ -2,7 +2,8 @@
   "shared/workshop-models-legacy.ts": "b7d4e56b54ba05863c2678a1961094013d5b26c38700eb5b711b953ee881ea53",
   "shared/workshop-models.ts": "dd101d9397835b7ea9b8fd5ce5374e664cc7aefe2f61af90f8f0458826ddc52a",
   "shared/workshop-models-v1.ts": "0c0d2d0fc9ab3eaaaa6118226e59157733ee067ed0fcdbcfaf3b92b09cd3a2c2",
-  "shared/builtin-models.ts": "b0bd19f93468c92932aee1d97d639014696a5f8cca0a6a07e96d6a9dc0519b9a",
+  "shared/handling-cell-models.ts": "9c9da2b8f4484e0d33ba0480a73fce29c06a6287f712ede7a24e12df0cf7a680",
+  "shared/builtin-models.ts": "dead61f2d19753170b1e12d0a3becd1f8b7d2955431c8c6a07ec4706f58ea14f",
   "shared/builtin-images.ts": "c6a896226bfe6bb5c1727024ea100ea8f8ee673fa4a1c7d2de33da90ba9cf43a",
   "shared/twin-actions.ts": "53b3591e87ab29d98333e9c6adfe7ae10926b601e6beec031d2ca5c35ee7b0fb",
   "shared/auth-constraints.ts": "24e6d3d12542f84dcd72d8d37dbe4269a9585cb67ade646dfdcc86032eaf9814",
@@ -21,5 +22,5 @@
   "apps/api/src/assets.ts": "a97ea8e818859c6bd29515342b1abf479923c6f0ce08f69765a7834774a9df71",
   "apps/api/src/data-sources.ts": "1952361f6749d25bdfe86d1f3f3d5c12bad565809e9bfbadac2f2db251d1ec47",
   "apps/api/src/asset-data-bindings.ts": "77ad9602b671889eb3689b5cfe8ba4a84011fc4a208c2964e03aabb9d9c7fd62",
-  "shared/twin-drive.ts": "6bee80e9b6f12eab2c40ed92ee0795b4e67524caa3defe5efe4a4bda442807d6"
+  "shared/twin-drive.ts": "21bf1cf0114867870562638ae3086c69968d0272be5cb0eb0e79a07b385b7756"
 }

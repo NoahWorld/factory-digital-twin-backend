@@ -1690,5 +1690,52 @@
         "explosion": 0
       }
     }
+  },
+  {
+    "id": "builtin:handling-cell-v1",
+    "name": "搬运送检单元",
+    "description": "运输车纵向送件，机械臂夹取送检并装车回收；独立车轮、关节、夹爪与单一箱子，由真实后端接口反馈驱动。",
+    "contentPath": "/models/handling-cell/handling-cell.fc8895589305.glb",
+    "thumbnailPath": "/models/handling-cell/handling-cell.fc8895589305.svg",
+    "originalFilename": "搬运送检单元.glb",
+    "format": "glb",
+    "contentType": "model/gltf-binary",
+    "byteSize": 1023280,
+    "sha256": "fc8895589305e79d159ce5fc91b4514a63e4ff2d3202755305f14e986e433e95",
+    "createdAt": "2026-10-09T00:00:00.000Z",
+    "inspection": {
+      "format": "glb",
+      "gltfVersion": "2.0",
+      "sceneCount": 1,
+      "nodeCount": 98,
+      "meshCount": 39,
+      "materialCount": 12,
+      "textureCount": 0,
+      "imageCount": 0,
+      "animationCount": 0,
+      "namedNodeCount": 98,
+      "duplicateNodeNames": [],
+      "externalResourceCount": 0
+    },
+    "defaults": {
+      "backgroundColor": "#152431",
+      "backgroundOpacity": 1,
+      "environmentLightColor": "#e4efff",
+      "environmentLightIntensity": 1.5,
+      "keyLightColor": "#fff3db",
+      "keyLightIntensity": 2.5,
+      "cameraFov": 38,
+      "cameraView": "isometric",
+      "modelScale": 1,
+      "autoRotate": false,
+      "playAnimations": false,
+      "animationSpeed": 1,
+      "presentation": {
+        "lighting": "studio",
+        "shellMode": "original",
+        "showFlow": true,
+        "explosion": 0
+      }
+    }
   }
 ]

@@ -9,15 +9,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.scheduling.annotation.Scheduled;
 
 class TwinDriveSchedulerTest {
-  @Test void stalledPublicationCannotBlockAutomaticSourceScheduling() throws Exception {
-    var runtime = mock(TwinDriveRuntime.class);
+  @Test void stalledPublicationCannotBlockApiSourceScheduling() throws Exception {
+    var runtime = mock(ApiMotionSources.class);
     var config = new TwinDriveScheduler(runtime);
     var publication = config.taskScheduler();
-    var source = config.twinAutomaticTaskScheduler();
+    var source = config.twinSourceTaskScheduler();
     publication.initialize(); source.initialize();
     var publishing = new CountDownLatch(1); var releasePublication = new CountDownLatch(1);
     var produced = new CountDownLatch(1);
-    doAnswer(call -> { produced.countDown(); return null; }).when(runtime).simulateAutomatically();
+    doAnswer(call -> { produced.countDown(); return null; }).when(runtime).collect();
     try {
       publication.schedule(() -> {
         publishing.countDown();
@@ -26,10 +26,10 @@ class TwinDriveSchedulerTest {
       }, Instant.now());
       assertTrue(publishing.await(2, TimeUnit.SECONDS));
       source.schedule(config::tick, Instant.now());
-      assertTrue(produced.await(2, TimeUnit.SECONDS), "Blocked publication must not block the independent simulator");
+      assertTrue(produced.await(2, TimeUnit.SECONDS), "Blocked publication must not block the independent source collector");
       assertEquals(1, releasePublication.getCount());
-      assertEquals("twinAutomaticTaskScheduler", TwinDriveScheduler.class.getMethod("tick").getAnnotation(Scheduled.class).scheduler());
-      verify(runtime).simulateAutomatically();
+      assertEquals("twinSourceTaskScheduler", TwinDriveScheduler.class.getMethod("tick").getAnnotation(Scheduled.class).scheduler());
+      verify(runtime).collect();
     } finally { releasePublication.countDown(); source.shutdown(); publication.shutdown(); }
   }
 }
