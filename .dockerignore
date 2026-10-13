@@ -3,3 +3,6 @@ target/*
 .env*
 .local
 meshopt/node_modules
+engineering/.venv
+**/__pycache__
+.git

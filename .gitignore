@@ -10,3 +10,7 @@ meshopt/node_modules/
 *.iml
 .DS_Store
 *.log
+engineering/.venv/
+engineering/__pycache__/
+engineering/tests/__pycache__/
+engineering/wheelhouse/

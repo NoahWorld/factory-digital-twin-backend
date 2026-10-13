@@ -6,7 +6,7 @@
 - `decorations`、`roomAlarms`、`staticMap` 通过原 scene 文档事务保存；settings-only 保留它们及 fluids，省略不清空。报警使用业务 assetId/metricKey 和实例/资源引用，每个 metric 的时间与 sourceId 必须对应，不能取其它源的聚合时间。几何预算及结构由平台共享定义生成，Java补语义与最终引用检查。
 - 固定版本捕获应识别内置模型和内置图片的不可变 ID，不查询虚构的上传资源；单数公开分享与复数固定版本保持各自既有语义。
 
-- 本仓库只包含 Java 21 + Spring Boot 后端；前端和平台级编排位于 `NoahWorld/factory-digital-twin-platform`。
+- 本仓库包含 Java 21 + Spring Boot 后端及 `engineering/` 离线 Python 几何转换子进程；前端和平台级编排位于 `NoahWorld/factory-digital-twin-platform`。
 - `src/main/resources/contracts/` 是与前端共享契约的已生成快照。修改契约时必须在平台仓库重新生成，并同步更新这里的文件与测试。
 - 行业模板图片使用平台 `shared/builtin-images.ts` 生成的 `builtin-images.json` 精确白名单，包含 ID、版本、路径、字节数与 SHA-256。项目只存资源 ID；未知 ID、资源类型不匹配必须报错，内置资源不可删除。静态图片由平台前端分发，不能将任意 URL 当作内置资源；公开发布只允许读取当前文档引用的资源。
 - 场景和 `model-3d` 的 `preventBottomView` 是默认开启的正式布尔配置。Java 从生成契约补齐旧文档中缺失的字段，保留显式 `false`，拒绝 `null` 和非布尔值；新项目、场景读取、保存与资源 manifest 必须返回一致设置，不维护浏览器专用副本。
@@ -26,6 +26,10 @@
 
 ## 安全要求
 
+- 工程底座支持 IFC/DXF → GLB，Flyway V8 持久化源文件引用、检查结果、显式参数、进度、错误和输出资源。Java 处理权限/S3/租约/入库，`engineering/convert.py` 只读取指定本地输入；禁止下载外部模型、接受用户命令行或运行时安装依赖。固定依赖见 `engineering/requirements.txt`，Docker 镜像内置 Python 3.11 与 native wheels，可 `docker save/load` 离线交付。原生开发必须显式设置 `TWIN_ENGINEERING_PYTHON` 和 `TWIN_ENGINEERING_WORKER`。
+- 源 IFC/DXF 上限 100 MiB，GLB 沿用 25 MiB；每租户最多 10 个活动任务，每 worker 同时一个转换，默认超时 900 秒。独立执行线程不得阻塞普通任务轮询；租约/心跳失效不得发布结果。失败保留任务 ID、错误码及受控图元定位信息；原始异常只进日志。项目删除必须阻止活动转换并清理源对象。不得把未启动 worker 当成已完成任务。
+- 二维 CAD 的单位、每个有内容图层的用途、高度/厚度和标高均显式确认，忽略图层也须明确。闭合轮廓、孔洞、曲线、图块变换必须保持几何含义；不支持的建模实体/无效轮廓明确失败，不能自动补墙、自动修拓扑或悄悄丢弃。输出米制 Y-up；保留 IFC GUID / DXF 句柄及居中偏移。RVT/DWG 需先导出 IFC/DXF，不宣称原生格式支持。平台 `docs/engineering-imports.md` 是跨前后端功能/输入/部署约定。
+
 - 账号具有独立 `2d`/`3d` 模块授权；V6 保留既有账号两个模块，新账号必须明确指定授权。平台管理员固定拥有两个模块，其他账号的模块授权与项目成员权限共同决定访问范围，每次请求读取数据库授权。管理接口支持编辑资料/角色/模块、重设密码并撤销会话、停用及恢复；不能删除当前管理员自己、移除自身管理员角色或移除最后一个启用的管理员。跨项目引用和点击动作也要校验目标模块权限，回归见 `ModuleAccessTest`。
 - V7 支持编辑者或管理员公开发布项目：每次匿名读取与只读点位推送都重新校验分享令牌和发布范围（最多 32 个关联项目），发布者必须对所有项目有编辑权限。取消或重新发布立即废止旧令牌；已签出的对象存储 URL 最多仍可用 5 分钟。公开点位连接只允许订阅和心跳，控制命令必须拒绝。接口细节见 README，回归见 `PublicSharesTest`、`TwinDriveWebSocketTest`；除明确公开的纯合成测试业务读源外，其他业务接口仍要求登录。
 - 不得提交 `.env`、密码、令牌、私钥、客户数据、备份、对象存储内容或 Maven 构建产物。
@@ -40,3 +44,4 @@
 
 - 提交前运行 `mvn -B verify`；生成用于启动或部署的 JAR 必须运行 `mvn -B clean verify`，避免迁移资源改名后旧 SQL 留在 `target/classes` 并被再次打包。`MigrationResourcesTest` 校验应用 classpath 与源迁移文件集合、内容一致，且 Flyway 版本唯一；失败时清理生成输出后重新构建，不修改数据库迁移历史来绕过构建错误。
 - 修改 API、数据库迁移、权限或共享契约时，需同时在平台仓库运行相应的集成与前端契约检查。
+- 工程转换修改执行 `python -m unittest discover -s engineering -p 'test_*.py'`，含真实 IFC 开洞和 DXF 几何/单位/变换/错误用例；镜像中使用 `--network none` 复验。平台 `pnpm backend:smoke:engineering` 只创建自己的临时容器和内网，不连接已有数据，验证真实文件检查、重启恢复、GLB 入库和损坏文件失败。

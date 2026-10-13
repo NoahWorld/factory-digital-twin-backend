@@ -1,5 +1,20 @@
 # Java 后端：本地运行与交付边界
 
+## 2026-10-13：IFC / DXF 转 GLB
+
+`engineering/convert.py` 使用 IfcOpenShell / ezdxf / Shapely / trimesh 进行本地几何转换。Java `EngineeringImports` 负责项目授权、S3 源文件和 Flyway V8 持久任务；`EngineeringWorker` 在独立线程启动有界子进程，维护心跳/租约、收集阶段和错误，GLB 通过既有文件检查后进入普通资源库。任务重启恢复，禁止静默忽略不支持的建模实体。IFC 使用已有三维构件；二维 DXF 须明确单位、逐图层用途、高度和标高，墙体为带实际墙厚的闭合占地轮廓。RVT / DWG 须先导出 IFC / DXF。
+
+接口为 `GET /api/v1/engineering-imports/capabilities`，项目下 `GET/POST /api/v1/projects/{id}/engineering-imports`、`GET .../{importId}`、`POST .../{importId}/convert`。上传 multipart 的 `file` 和 `name` 后先检查；`needs_configuration` 提交版本化参数再转换。源文件上限 100 MiB，输出 25 MiB；转换默认 900 秒超时，可设置 `TWIN_ENGINEERING_TIMEOUT_SECONDS`（30–3600）。完整输入/接口/部署规范见平台 `docs/engineering-imports.md`。
+
+Dockerfile 与 Dockerfile.runtime 已内置 Python 3.11 和 SHA256 锁定依赖，运行不访问外网。构建机执行 `mvn -B clean verify`、`docker build -f Dockerfile.runtime -t dtwin/backend:engineering-v1 .`；可在构建时传入可信 `PIP_INDEX_URL` 索引，依然强制哈希校验。禁网检查：
+
+```sh
+docker run --rm --network none --entrypoint python3 dtwin/backend:engineering-v1 \
+  -m unittest discover -s /app/engineering -p 'test_*.py'
+```
+
+现场用 `docker save/load` 导入已经验证的同架构镜像；不得在无外网服务器临时安装 Python/wheel。平台 Compose 为 worker 配置 2 GiB 内存（`ENGINEERING_WORKER_MEMORY`）、384 MiB JVM 堆和 512 MiB 临时空间。原生开发需自行安装锁定依赖并设置 `TWIN_ENGINEERING_PYTHON` / `TWIN_ENGINEERING_WORKER` 绝对路径；缺少组件时能力接口明确不可用。验证包括 Java `EngineeringImportsTest`、`python -m unittest discover -s engineering -p 'test_*.py'`、平台 `pnpm backend:smoke:engineering`（隔离容器和临时数据）。
+
 ## 2026-09-27：独立仓库开发与场景扩展
 
 本仓库 `main` 是 Java 后端修改、构建和契约生成目标；前端及共享 TS 定义仍在平台仓库 `main`。已对齐平台较新的流体、模块权限、点位驱动、内置图片、模型压缩和发布代码。平台中的 `apps/backend` 只保留历史参考，不再作为运行目标。

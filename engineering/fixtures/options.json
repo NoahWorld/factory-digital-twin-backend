@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "name": "Engineering layout example",
+  "units": "mm",
+  "center": true,
+  "layers": [
+    {
+      "name": "DT_FLOOR",
+      "role": "floor",
+      "height": 0.2,
+      "base": -0.2
+    },
+    {
+      "name": "DT_WALL",
+      "role": "wall",
+      "height": 4,
+      "base": 0
+    },
+    {
+      "name": "DT_COLUMN",
+      "role": "column",
+      "height": 4,
+      "base": 0
+    },
+    {
+      "name": "DT_EQUIPMENT",
+      "role": "equipment",
+      "height": 1.5,
+      "base": 0
+    },
+    {
+      "name": "DT_IGNORE",
+      "role": "ignore",
+      "height": 1,
+      "base": 0
+    }
+  ]
+}

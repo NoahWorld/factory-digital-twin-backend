@@ -48,7 +48,9 @@ public class RequestFilter extends OncePerRequestFilter {
             "origin_denied",
             "A trusted Origin header is required for state-changing requests.");
       boolean binary = r.getRequestURI().matches(".*/(model|image|media)-assets");
-      long limit = binary ? 100L * 1024 * 1024 : 2L * 1024 * 1024;
+      boolean engineeringUpload = r.getMethod().equals("POST")
+          && r.getRequestURI().matches("/api/v1/projects/[^/]+/engineering-imports");
+      long limit = engineeringUpload ? 101L * 1024 * 1024 : binary ? 100L * 1024 * 1024 : 2L * 1024 * 1024;
       if (r.getContentLengthLong() > limit)
         throw new ApiException(
             413, "request_too_large", "Request exceeds the endpoint body budget.");

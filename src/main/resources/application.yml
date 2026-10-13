@@ -19,7 +19,11 @@ spring:
       fail-on-trailing-tokens: true
   servlet:
     multipart:
-      enabled: false
+      enabled: true
+      max-file-size: 100MB
+      max-request-size: 101MB
+      file-size-threshold: 0
+      resolve-lazily: true
   lifecycle:
     timeout-per-shutdown-phase: 20s
 server:
@@ -46,6 +50,10 @@ twin:
   secure-cookie: ${SECURE_COOKIE:false}
   default-tenant: ${DEFAULT_TENANT:local}
   runtime-allowed-origins: ${RUNTIME_ALLOWED_ORIGINS:}
+  engineering:
+    python: ${TWIN_ENGINEERING_PYTHON:}
+    worker: ${TWIN_ENGINEERING_WORKER:}
+    timeout-seconds: ${TWIN_ENGINEERING_TIMEOUT_SECONDS:900}
   storage:
     endpoint: ${S3_ENDPOINT:http://localhost:18333}
     public-endpoint: ${S3_PUBLIC_ENDPOINT:http://localhost:18333}

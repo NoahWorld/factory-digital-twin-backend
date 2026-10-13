@@ -1,0 +1,6 @@
+ifcopenshell==0.8.4
+ezdxf==1.4.3
+shapely==2.1.2
+trimesh==4.9.0
+numpy==2.3.3
+mapbox-earcut==2.0.0
