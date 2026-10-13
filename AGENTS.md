@@ -2,7 +2,8 @@
 
 ## 仓库范围
 
-- 当前 Owner 要求在本仓库 `main` 与平台前端 `main` 配套开发；本轮既有能力同步及四项场景功能已完成本地验证，Owner 已授权提交并推送到两个仓库的 `main`，不包含外部部署。原平台 `newpower` 目标保持暂停。
+- Owner 要求在本仓库 `main` 与平台前端 `main` 配套开发。此前既有能力同步及四项场景功能已完成本地验证，当时授权范围为提交并推送两个仓库的 `main`、不包含外部部署；这是历史范围，不限制下述另行授权的服务器发布。原平台 `newpower` 目标保持暂停。
+- 2026-10-13 Owner 授权的 BIM/CAD 工程底座完整前后端已于 `06:57:49.276338Z` 部署到 `http://8.136.35.33:19080` 并通过生产验收。运行后端来自本仓库应用提交 `43ec0a91e2becea96274ee0290a062ff4382e936`，镜像为 `dtwin/backend:43ec0a9-amd64`；配套平台应用提交 `968009b3a0c452fcad56612c7bcbc27a4b43347c`，release `dtwin-engineering-20261013-968009b`。服务器原生禁网 12 项、真实工程几何 5 项、公网接口 10 项、普通 HTTP 浏览器 8 项与工程界面 8 项验收通过，备份恢复及既有业务/其他容器核对一致；V1–V8 迁移成功。后续验收脚本和文档提交不改变已发布应用产物，证据以平台 `deploy/server/DEPLOYMENT.md` 本轮记录为准。
 - `decorations`、`roomAlarms`、`staticMap` 通过原 scene 文档事务保存；settings-only 保留它们及 fluids，省略不清空。报警使用业务 assetId/metricKey 和实例/资源引用，每个 metric 的时间与 sourceId 必须对应，不能取其它源的聚合时间。几何预算及结构由平台共享定义生成，Java补语义与最终引用检查。
 - 固定版本捕获应识别内置模型和内置图片的不可变 ID，不查询虚构的上传资源；单数公开分享与复数固定版本保持各自既有语义。
 
@@ -45,3 +46,4 @@
 - 提交前运行 `mvn -B verify`；生成用于启动或部署的 JAR 必须运行 `mvn -B clean verify`，避免迁移资源改名后旧 SQL 留在 `target/classes` 并被再次打包。`MigrationResourcesTest` 校验应用 classpath 与源迁移文件集合、内容一致，且 Flyway 版本唯一；失败时清理生成输出后重新构建，不修改数据库迁移历史来绕过构建错误。
 - 修改 API、数据库迁移、权限或共享契约时，需同时在平台仓库运行相应的集成与前端契约检查。
 - 工程转换修改执行 `python -m unittest discover -s engineering -p 'test_*.py'`，含真实 IFC 开洞和 DXF 几何/单位/变换/错误用例；镜像中使用 `--network none` 复验。平台 `pnpm backend:smoke:engineering` 只创建自己的临时容器和内网，不连接已有数据，验证真实文件检查、重启恢复、GLB 入库和损坏文件失败。
+- 生产 amd64 镜像以 Python 3.11 / Debian Bookworm 运行层交付固定 native wheels；目标服务器的旧内核必须原生执行默认 seccomp、`--network none` 的依赖与几何测试，不能以本机 ARM 或仿真结果替代。服务器变更只使用 `/data/dtwin/bin/docker-dtwin` 操作本项目专用 daemon，禁止修改其他业务 Docker/Nginx。工程 worker 配置为 2 GiB 内存上限、512 MiB `/tmp` tmpfs、JVM `-Xmx384m`，storage 保持 2 GiB；限额不代表内存预占或任意复杂文件均可转换。完整发布先恢复验证数据库和对象备份，再运行平台 `deploy/server/verify-engineering.mjs`、公网接口和真实 HTTP 浏览器验收，按精确 ID 清理自己的测试项目并撤销会话，核对既有业务数据和其他容器状态。
