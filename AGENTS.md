@@ -25,6 +25,15 @@
 
 - 公共流体采用平台 `shared/fluids.ts` 同级 `scene.fluids` 契约，Java 保存于现有 settings JSONB 内部并在 API/manifest 中抽离；settings-only PATCH 保留流体，缺失旧字段读为 `[]`，显式 `null` 非法。流体整数组替换，与模型共用权限、事务、revision 和封面失效；公共 settings 拒绝嵌套 fluids。数量/路径/数值预算由生成 schema 与共享正反样例约束，修改后同步 `FluidContractTest`、`DocumentControllerTest` 并在平台运行 `pnpm backend:smoke:fluids`。
 
+## 写实漫游（2026-10-13）
+
+- 2026-10-14 Owner 因服务器暂不具备 GPU 重建条件，要求暂时隐藏平台前端的写实漫游入口与介绍；保留本仓库 API、任务数据和工作程序。恢复公开入口须先完成目标 GPU 部署与真实素材重建验收，不能将保留的接口视为当前已开放能力。
+- `SiteCaptures` + Flyway V9 为独立持久任务，支持客户端 UUID 幂等创建、声明素材槽位、原始字节上传、显式开始、状态查询、失败重试、取消和删除。每次读写继续校验租户/项目/模块权限。素材不复用通用媒体表，项目删除必须检查重建与上传状态并清理所属对象。
+- `TWIN_MODE=capture-worker` 单独运行 COLMAP + gsplat CUDA 子进程；普通 API、collector、engineering worker 不执行重建。`TWIN_CAPTURE_PYTHON`、`TWIN_CAPTURE_WORKER` 为固定绝对路径，超时默认 7200 秒。可用性只能来自新鲜工作节点心跳及实际 GPU/预编译扩展探测，不能用配置或进程存在冒充 ready。
+- Python 输入/输出契约和离线镜像位于 `capture/`。限制 8–120 张照片（单张8 MiB、总500 MiB）或一个视频（100 MiB），输出最多200 MiB/100万高斯点。固定参数、有限工作目录、JSONL 实际阶段/计数，禁止接受任意命令、联网下载、CPU 假重建或吞掉素材错误。Gaussian PLY 由 Java 验证后才发布；失败保留受控错误码、任务 ID 和服务端详细日志。
+- 任务租约过期最多自动恢复三次，旧 lease 不得更新或发布；取消、重试、对象清理均使用任务/attempt 追溯。源文件与结果均为私有存储；对外只通过受权任务接口访问。
+- 当前无 NVIDIA GPU 服务器；CPU 单元测试、真实 PostgreSQL/HTTP/S3 测试、合成 PLY 渲染测试均不能代替真实素材重建及离线 GPU 镜像验收。平台 `docs/site-capture.md` 与本仓库 `capture/README.md` 为跨端契约和部署说明。
+
 ## 安全要求
 
 - 工程底座支持 IFC/DXF → GLB，Flyway V8 持久化源文件引用、检查结果、显式参数、进度、错误和输出资源。Java 处理权限/S3/租约/入库，`engineering/convert.py` 只读取指定本地输入；禁止下载外部模型、接受用户命令行或运行时安装依赖。固定依赖见 `engineering/requirements.txt`，Docker 镜像内置 Python 3.11 与 native wheels，可 `docker save/load` 离线交付。原生开发必须显式设置 `TWIN_ENGINEERING_PYTHON` 和 `TWIN_ENGINEERING_WORKER`。

@@ -54,6 +54,10 @@ twin:
     python: ${TWIN_ENGINEERING_PYTHON:}
     worker: ${TWIN_ENGINEERING_WORKER:}
     timeout-seconds: ${TWIN_ENGINEERING_TIMEOUT_SECONDS:900}
+  capture:
+    python: ${TWIN_CAPTURE_PYTHON:}
+    worker: ${TWIN_CAPTURE_WORKER:}
+    timeout-seconds: ${TWIN_CAPTURE_TIMEOUT_SECONDS:7200}
   storage:
     endpoint: ${S3_ENDPOINT:http://localhost:18333}
     public-endpoint: ${S3_PUBLIC_ENDPOINT:http://localhost:18333}

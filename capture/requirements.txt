@@ -1,0 +1,9 @@
+# CPU-safe dependencies: python -m pip install -r capture/requirements.txt
+# CUDA torch + compiled gsplat are deliberately installed only by capture/Dockerfile.
+numpy==2.1.3
+Pillow==11.3.0
+scipy==1.15.3
+packaging==25.0
+jaxtyping==0.3.2
+rich==14.0.0
+ninja==1.11.1.4

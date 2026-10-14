@@ -14,6 +14,7 @@ public class Operations implements ApplicationRunner {
   final Projects p;
   final Resources resources;
   final EngineeringImports engineering;
+  final SiteCaptures captures;
   final RuntimeState runtime;
   final String mode, origins;
   final Logger log = LoggerFactory.getLogger(Operations.class);
@@ -22,12 +23,14 @@ public class Operations implements ApplicationRunner {
       Projects p,
       Resources resources,
       EngineeringImports engineering,
+      SiteCaptures captures,
       RuntimeState runtime,
       @Value("${twin.mode}") String mode,
       @Value("${twin.allowed-origins}") String origins) {
     this.p = p;
     this.resources = resources;
     this.engineering = engineering;
+    this.captures = captures;
     this.runtime = runtime;
     this.mode = mode;
     this.origins = origins;
@@ -176,6 +179,7 @@ public class Operations implements ApplicationRunner {
                 409,
                 "resource_processing",
                 "Wait for resource processing before deleting this project.");
+          captures.deleteProjectSources(u.tenant(), id);
           engineering.deleteProjectSources(u.tenant(), id);
           for (var object : objects) resources.deleteObject(object);
           p.db.update("DELETE FROM resources WHERE tenant_id=? AND project_id=? AND source_model_id IS NOT NULL",

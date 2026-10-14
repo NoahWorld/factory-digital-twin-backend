@@ -1,5 +1,43 @@
 # Java 后端：本地运行与交付边界
 
+## 2026-10-13：照片 / 视频写实重建
+
+**当前开放状态（2026-10-14）：服务器暂不具备 GPU 重建条件，平台前端已暂时隐藏写实漫游入口与介绍。本仓库保留 API、任务数据和工作程序；以下内容说明保留的实现，恢复公开入口前须完成目标 GPU 部署与真实素材验收。**
+
+`SiteCaptures` 与 Flyway V9 保存项目内的素材清单、逐文件上传、任务进度和私有 PLY 输出。`TWIN_MODE=capture-worker` 是独立 GPU 工作进程，使用 `TWIN_CAPTURE_PYTHON`、`TWIN_CAPTURE_WORKER` 指向预装 Python 和 `capture/worker.py` 的绝对路径；API 进程只负责任务和权限。能力接口 `GET /api/v1/site-captures/capabilities` 只接受 90 秒内通过实际 CUDA / COLMAP / FFmpeg / gsplat 内核检查的工作节点心跳，无 GPU 时可以保存素材，不能开始生成。PLY 由授权后的 `.../site-captures/{id}/content` 同源流式读取，输出必须通过完整二进制和相机校验后才发布。
+
+照片为 8–120 张 JPEG / PNG / WebP，单张最多 8 MiB；或一个最多 100 MiB 的 MP4 / WebM 视频。素材合计最多 500 MiB，输出最多 200 MiB、100 万高斯点。转换默认 7200 秒超时，可用 `TWIN_CAPTURE_TIMEOUT_SECONDS` 设置 60–21600 秒；Python 重建链路另有 3 小时内部处理上限。任务使用数据库租约和心跳，异常退出最多自动恢复 3 次，取消、删除和过期执行器均不能发布结果。完整采集、离线 GPU 部署与验收说明见平台仓库 `docs/site-capture.md`。
+
+取消立即改变任务状态；后台完成文件写入清理前保留工作租约，此期间任务和项目删除返回 `409 site_capture_active`。工作进程确认清理后释放租约；崩溃时由租约过期解除保护。素材上传在开始对象存储写入前再次校验并续租，过期或已取消的上传不能开始写入。对象存储单次调用最多 60 秒，写入保护窗口为 2 分钟。
+
+在本仓库执行完整 Java 校验并生成运行包：
+
+```sh
+mvn -B clean verify
+```
+
+默认测试覆盖声明限制、权限边界、上传签名、内容流、进度、租约和 PLY 数据校验。真实 PostgreSQL 用例默认跳过；要验证 V1–V9 迁移、并发幂等、上传持久化、过期租约恢复及过期执行器拒绝发布，使用以下一次性空数据库。不要将测试 JDBC 地址指向开发或生产数据库。
+
+```sh
+docker run -d --pull never --name twin-capture-db-test \
+  -p 127.0.0.1:15433:5432 -e POSTGRES_HOST_AUTH_METHOD=trust postgres:17-alpine
+docker exec twin-capture-db-test pg_isready -U postgres
+TWIN_CAPTURE_TEST_JDBC_URL=jdbc:postgresql://127.0.0.1:15433/postgres \
+  mvn -B -Dtest=SiteCaptureDatabaseTest test
+docker rm -f twin-capture-db-test
+```
+
+先等待 `pg_isready` 成功再执行测试。测试要求 `public` schema 为空，并会创建独立测试数据；数据库容器删除后这些数据随之移除。
+
+真实 HTTP 冒烟使用新建的隔离 Docker 内部网络、PostgreSQL / S3 / Valkey 容器和当前 JAR，验证登录、项目权限、私有上传、重启后持久化、取消删除，以及无 GPU 时返回真实不可用。脚本不读取本机部署凭据，也不连接已有开发或生产服务，结束时清理容器和网络，诊断日志与 `results.json` 留在打印的临时目录。
+
+```sh
+mvn -B clean verify
+node scripts/test-site-capture-api.mjs
+```
+
+冒烟要求本机预先存在 `factory-twin-backend:engineering-test`、`postgres:17-alpine`、`valkey/valkey:8.1.3-alpine`、`chrislusf/seaweedfs:4.47` 镜像，不会自动拉取。可用 `CAPTURE_TEST_IMAGE` 指定另一个同时包含 Java 21 和 Node 的后端运行镜像，用 `CAPTURE_TEST_OUTPUT_DIR` 指定结果目录。无 GPU 环境完成的是接口、任务和安全边界验收；真实重建质量仍须在目标 GPU 上以真实采集素材验收，不能用这些测试代替。
+
 ## 2026-10-13：IFC / DXF 转 GLB
 
 `engineering/convert.py` 使用 IfcOpenShell / ezdxf / Shapely / trimesh 进行本地几何转换。Java `EngineeringImports` 负责项目授权、S3 源文件和 Flyway V8 持久任务；`EngineeringWorker` 在独立线程启动有界子进程，维护心跳/租约、收集阶段和错误，GLB 通过既有文件检查后进入普通资源库。任务重启恢复，禁止静默忽略不支持的建模实体。IFC 使用已有三维构件；二维 DXF 须明确单位、逐图层用途、高度和标高，墙体为带实际墙厚的闭合占地轮廓。RVT / DWG 须先导出 IFC / DXF。
