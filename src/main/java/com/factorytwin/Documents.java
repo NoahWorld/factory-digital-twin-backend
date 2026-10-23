@@ -264,6 +264,7 @@ public class Documents {
     var finalItems = p.db.query(
         "SELECT body::text FROM document_items WHERE tenant_id=? AND project_id=?",
         (result, index) -> Json.parse(result.getString(1)), u.tenant(), id);
+    if (kind.equals("canvas")) contracts.canvasIotBindings(finalItems);
     if (kind.equals("canvas")) ProcessControls.canvas(contracts, finalItems);
     String linkedProjectId = kind.equals("scene")
         ? (b.has("linked2dProjectId") ? (b.path("linked2dProjectId").isNull() ? null : b.path("linked2dProjectId").asText()) : (String) row.get("linked_project_id"))

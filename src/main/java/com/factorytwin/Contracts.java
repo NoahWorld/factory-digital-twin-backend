@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class Contracts {
   private static final Logger log = LoggerFactory.getLogger(Contracts.class);
-  final JsonNode root, builtins, builtinImages, minimumSizes, limits, processControlLimits;
+  final JsonNode root, builtins, builtinImages, minimumSizes, limits, iotBindingLimits, processControlLimits;
   final Map<String, JsonSchema> validators = new HashMap<>();
 
   public Contracts() {
@@ -21,6 +21,7 @@ public class Contracts {
     builtinImages = resource("builtin-images.json");
     minimumSizes = resource("canvas-minimum-sizes.json");
     limits = resource("scene-limits.json");
+    iotBindingLimits = resource("iot-binding-limits.json");
     processControlLimits = resource("process-control-limits.json");
   }
 
@@ -270,6 +271,30 @@ public class Contracts {
                 && instances.get(0).path("assetId").equals(n.path("resourceRefs").get(0)),
             "modelInstances must agree with resourceRefs.");
       }
+    }
+  }
+
+  /** Validate the resulting canvas, including unchanged nodes in an incremental patch. */
+  public void canvasIotBindings(Iterable<JsonNode> nodes) {
+    Map<String, String> pointTypes = new HashMap<>();
+    for (JsonNode node : nodes) {
+      if (!node.has("iotBinding")) continue;
+      JsonNode binding = node.get("iotBinding");
+      validate("IotBinding", binding);
+      String key = binding.path("pointKey").asText();
+      // TypeScript bounds string.length (UTF-16); JSON Schema bounds code points.
+      if (key.length() > iotBindingLimits.path("maxPointKeyLength").asInt())
+        throw new ApiException(400, "invalid_canvas_iot_binding",
+            "Node " + node.path("id").asText() + ": IoT point key exceeds the character budget.");
+      String type = binding.path("valueType").asText();
+      String previous = pointTypes.putIfAbsent(key, type);
+      if (previous != null && !previous.equals(type))
+        throw new ApiException(400, "invalid_canvas_iot_binding",
+            "IoT point " + key + " has conflicting value types in the canvas.");
+      if (pointTypes.size() > iotBindingLimits.path("maxPointCount").asInt())
+        throw new ApiException(400, "invalid_canvas_iot_binding",
+            "Canvas exceeds " + iotBindingLimits.path("maxPointCount").asInt()
+                + " distinct IoT points.");
     }
   }
 

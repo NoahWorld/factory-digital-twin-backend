@@ -1,0 +1,5 @@
+{
+  "maxPointKeyLength": 200,
+  "maxStaleAfterSeconds": 86400,
+  "maxPointCount": 500
+}
