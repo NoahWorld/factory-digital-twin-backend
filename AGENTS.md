@@ -28,6 +28,7 @@
 - 回归为 `ApiMotionSourcesTest`、`TestBusinessTest`、`TestBusinessNetworkTest`、`TwinDriveDocumentsTest`、`TwinDriveRuntimeTest`、`TwinDriveWebSocketTest`，协议与预算见 README。
 
 - 公共流体采用平台 `shared/fluids.ts` 同级 `scene.fluids` 契约，Java 保存于现有 settings JSONB 内部并在 API/manifest 中抽离；settings-only PATCH 保留流体，缺失旧字段读为 `[]`，显式 `null` 非法。流体整数组替换，与模型共用权限、事务、revision 和封面失效；公共 settings 拒绝嵌套 fluids。数量/路径/数值预算由生成 schema 与共享正反样例约束，修改后同步 `FluidContractTest`、`DocumentControllerTest` 并在平台运行 `pnpm backend:smoke:fluids`。
+- 管路和状态联动采用平台 `shared/process-control.ts` 生成契约：2D `process-pipe` 端点引用在文档保存事务中按最终节点全集校验，不能引用管路或删除仍被引用的组件；管路禁止外部资源、数据绑定和点击动作。节点/3D 流体的可选 `stateBinding` 保存在原 JSONB 文档，通用 pointKey 为 1–200 UTF-16 单元、无首尾空白/控制字符；同文档点位类型一致、最多 500 个不同点位，不限制设备数。数值比较和标量类型严格匹配，运行点值不落库；不新增 IoT 运行端点。生成范围在 `process-control-limits.json`，回归为 `ProcessControlContractTest`、`ProcessControlPersistenceTest`。
 
 ## 写实漫游（2026-10-13）
 

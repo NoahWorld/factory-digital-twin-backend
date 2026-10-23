@@ -1,4 +1,8 @@
 {
+  "process-pipe": [
+    1,
+    1
+  ],
   "line-chart": [
     240,
     160

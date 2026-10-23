@@ -293,6 +293,226 @@
       ],
       "additionalProperties": false
     },
+    "IotValueType": {
+      "anyOf": [
+        {
+          "const": "string"
+        },
+        {
+          "const": "number"
+        },
+        {
+          "const": "boolean"
+        }
+      ]
+    },
+    "ProcessState": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "maxLength": 80,
+          "minLength": 1,
+          "pattern": "^(?=[\\s\\S]*[^\\u0009-\\u000d\\u0020\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff])[^\\u0000-\\u001f\\u007f]*(?![\\s\\S])"
+        },
+        "operator": {
+          "anyOf": [
+            {
+              "const": "eq"
+            },
+            {
+              "const": "gt"
+            },
+            {
+              "const": "gte"
+            },
+            {
+              "const": "lt"
+            },
+            {
+              "const": "lte"
+            }
+          ]
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 1000,
+              "minLength": 1
+            },
+            {
+              "type": "number"
+            },
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "color": {
+          "type": "string",
+          "maxLength": 8192,
+          "pattern": "^#[0-9a-fA-F]{6}(?![\\s\\S])"
+        },
+        "visible": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "flowing": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "const": "forward"
+            },
+            {
+              "const": "reverse"
+            }
+          ]
+        },
+        "speed": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 30
+        }
+      },
+      "required": [
+        "label",
+        "operator",
+        "value",
+        "color",
+        "visible",
+        "flowing",
+        "direction",
+        "speed"
+      ],
+      "additionalProperties": false
+    },
+    "StateBinding": {
+      "type": "object",
+      "properties": {
+        "pointKey": {
+          "type": "string",
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "^(?![\\u0009-\\u000d\\u0020\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff])[^\\u0000-\\u001f\\u007f]*[^\\u0009-\\u000d\\u0020\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff\\u0000-\\u001f\\u007f](?![\\s\\S])"
+        },
+        "valueType": {
+          "$ref": "#/definitions/IotValueType"
+        },
+        "staleAfterSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400
+        },
+        "states": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProcessState"
+          },
+          "maxItems": 8,
+          "minItems": 1
+        }
+      },
+      "required": [
+        "pointKey",
+        "valueType",
+        "staleAfterSeconds",
+        "states"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "valueType": {
+                "const": "number"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "states": {
+                "items": {
+                  "properties": {
+                    "value": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "valueType": {
+                "const": "string"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "states": {
+                "items": {
+                  "properties": {
+                    "value": {
+                      "type": "string"
+                    },
+                    "operator": {
+                      "const": "eq"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "valueType": {
+                "const": "boolean"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "states": {
+                "items": {
+                  "properties": {
+                    "value": {
+                      "type": "boolean"
+                    },
+                    "operator": {
+                      "const": "eq"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
     "CanvasNodeType": {
       "anyOf": [
         {
@@ -426,8 +646,165 @@
         },
         {
           "const": "asset-detail"
+        },
+        {
+          "const": "process-pipe"
         }
       ]
+    },
+    "PipeEndpoint": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 16384
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 16384
+        },
+        "nodeId": {
+          "anyOf": [
+            {
+              "type": "null",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            {
+              "type": "string",
+              "maxLength": 120,
+              "minLength": 1
+            }
+          ]
+        },
+        "port": {
+          "anyOf": [
+            {
+              "const": "top"
+            },
+            {
+              "const": "left"
+            },
+            {
+              "const": "right"
+            },
+            {
+              "const": "bottom"
+            }
+          ]
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "nodeId",
+        "port"
+      ],
+      "additionalProperties": false
+    },
+    "PipePoint": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 16384
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 16384
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ],
+      "additionalProperties": false
+    },
+    "PipeProps": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "maxLength": 80,
+          "minLength": 1,
+          "pattern": "^(?=[\\s\\S]*[^\\u0009-\\u000d\\u0020\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff])[^\\u0000-\\u001f\\u007f]*(?![\\s\\S])"
+        },
+        "source": {
+          "$ref": "#/definitions/PipeEndpoint"
+        },
+        "target": {
+          "$ref": "#/definitions/PipeEndpoint"
+        },
+        "waypoints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PipePoint"
+          },
+          "maxItems": 32
+        },
+        "routing": {
+          "anyOf": [
+            {
+              "const": "horizontal"
+            },
+            {
+              "const": "vertical"
+            }
+          ]
+        },
+        "color": {
+          "type": "string",
+          "maxLength": 8192,
+          "pattern": "^#[0-9a-fA-F]{6}(?![\\s\\S])"
+        },
+        "width": {
+          "type": "number",
+          "minimum": 2,
+          "maximum": 40
+        },
+        "flowing": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "const": "forward"
+            },
+            {
+              "const": "reverse"
+            }
+          ]
+        },
+        "speed": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 30
+        }
+      },
+      "required": [
+        "label",
+        "source",
+        "target",
+        "waypoints",
+        "routing",
+        "color",
+        "width",
+        "flowing",
+        "direction",
+        "speed"
+      ],
+      "additionalProperties": false
     },
     "VectorIconProps": {
       "type": "object",
@@ -783,10 +1160,10 @@
               "const": "left"
             },
             {
-              "const": "center"
+              "const": "right"
             },
             {
-              "const": "right"
+              "const": "center"
             }
           ]
         },
@@ -939,10 +1316,10 @@
               "const": "left"
             },
             {
-              "const": "center"
+              "const": "right"
             },
             {
-              "const": "right"
+              "const": "center"
             }
           ]
         },
@@ -1715,10 +2092,10 @@
               "const": "left"
             },
             {
-              "const": "center"
+              "const": "right"
             },
             {
-              "const": "right"
+              "const": "center"
             }
           ]
         },
@@ -1796,10 +2173,10 @@
               "const": "left"
             },
             {
-              "const": "center"
+              "const": "right"
             },
             {
-              "const": "right"
+              "const": "center"
             }
           ]
         },
@@ -2760,6 +3137,13 @@
             }
           ]
         },
+        "stateBinding": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/StateBinding"
+            }
+          ]
+        },
         "id": {
           "type": "string",
           "maxLength": 8192
@@ -3396,6 +3780,54 @@
             "properties": {
               "props": {
                 "$ref": "#/definitions/VectorIconProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "process-pipe"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "$ref": "#/definitions/PipeProps"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "process-pipe"
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "required": [
+                "interaction"
+              ]
+            },
+            "properties": {
+              "resourceRefs": {
+                "maxItems": 0
+              },
+              "dataBindingRefs": {
+                "maxItems": 0
               }
             }
           }
@@ -4125,6 +4557,13 @@
     "FluidDefinition": {
       "type": "object",
       "properties": {
+        "stateBinding": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/StateBinding"
+            }
+          ]
+        },
         "id": {
           "type": "string",
           "maxLength": 8192,
@@ -5295,10 +5734,10 @@
         "severity": {
           "anyOf": [
             {
-              "const": "warning"
+              "const": "error"
             },
             {
-              "const": "error"
+              "const": "warning"
             }
           ]
         },

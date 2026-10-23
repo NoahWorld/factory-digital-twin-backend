@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class Contracts {
   private static final Logger log = LoggerFactory.getLogger(Contracts.class);
-  final JsonNode root, builtins, builtinImages, minimumSizes, limits;
+  final JsonNode root, builtins, builtinImages, minimumSizes, limits, processControlLimits;
   final Map<String, JsonSchema> validators = new HashMap<>();
 
   public Contracts() {
@@ -21,6 +21,7 @@ public class Contracts {
     builtinImages = resource("builtin-images.json");
     minimumSizes = resource("canvas-minimum-sizes.json");
     limits = resource("scene-limits.json");
+    processControlLimits = resource("process-control-limits.json");
   }
 
   private JsonNode resource(String name) {
@@ -110,6 +111,7 @@ public class Contracts {
       for (String field : List.of("radius", "speed", "spread", "opacity"))
         Json.require(Double.isFinite(fluid.path(field).asDouble()), "Fluid " + id + " " + field + " must be finite.");
     }
+    ProcessControls.bindings(this, fluids);
   }
 
   /** Persist fluids in the existing scene settings JSONB, exposing a sibling field over the API. */
@@ -199,6 +201,7 @@ public class Contracts {
   }
 
   public void canvasNode(JsonNode n) {
+    ProcessControls.node(this, n);
     identifier(n.path("id").asText());
     String type = n.path("type").asText();
     JsonNode size = minimumSizes.path(type);
@@ -226,6 +229,7 @@ public class Contracts {
           "Chart categories and values must match and contain at most 32 points.");
     }
     if (Set.of(
+            "process-pipe",
             "scene-3d",
             "asset-detail",
             "card-title",

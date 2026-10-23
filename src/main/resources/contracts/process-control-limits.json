@@ -1,0 +1,13 @@
+{
+  "maximumLabelLength": 80,
+  "maximumStates": 8,
+  "maximumStringValueLength": 1000,
+  "maximumSpeed": 30,
+  "maximumCoordinate": 16384,
+  "maximumWaypoints": 32,
+  "minimumWidth": 2,
+  "maximumWidth": 40,
+  "maximumNodeIdLength": 120,
+  "maximumPointKeyLength": 200,
+  "maximumPoints": 500
+}
