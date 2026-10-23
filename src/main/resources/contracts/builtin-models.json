@@ -1,5 +1,52 @@
 [
   {
+    "id": "builtin:chemical-workshop-v1",
+    "name": "化工车间 · 管廊与集液区",
+    "description": "金属盐产线概念环境，包含公用管廊、围堰、排水沟、检修平台及仪表柜。",
+    "contentPath": "/models/chemical/chemical-workshop.a925b5865282.glb",
+    "thumbnailPath": "/models/chemical/chemical-workshop.svg",
+    "originalFilename": "chemical-workshop.glb",
+    "format": "glb",
+    "contentType": "model/gltf-binary",
+    "byteSize": 613216,
+    "sha256": "a925b586528265414975e381dd57c0aa7d708d5eaee7d152d52a1f75669fdc47",
+    "createdAt": "2026-10-22T00:00:00.000Z",
+    "inspection": {
+      "format": "glb",
+      "gltfVersion": "2.0",
+      "sceneCount": 1,
+      "nodeCount": 231,
+      "meshCount": 230,
+      "materialCount": 9,
+      "textureCount": 0,
+      "imageCount": 0,
+      "animationCount": 0,
+      "namedNodeCount": 231,
+      "duplicateNodeNames": [],
+      "externalResourceCount": 0
+    },
+    "defaults": {
+      "backgroundColor": "#071525",
+      "backgroundOpacity": 1,
+      "environmentLightColor": "#d9efff",
+      "environmentLightIntensity": 1.5,
+      "keyLightColor": "#ffffff",
+      "keyLightIntensity": 2.5,
+      "cameraFov": 42,
+      "cameraView": "front",
+      "modelScale": 1,
+      "autoRotate": false,
+      "playAnimations": false,
+      "animationSpeed": 1,
+      "presentation": {
+        "lighting": "studio",
+        "shellMode": "original",
+        "showFlow": false,
+        "explosion": 0
+      }
+    }
+  },
+  {
     "id": "builtin:aqua-helix-hd-v1",
     "name": "AQUA HELIX · 水冷机组",
     "description": "双回路水冷机组，独立零部件、铜管束、转子与 12 秒循环水流动画。",

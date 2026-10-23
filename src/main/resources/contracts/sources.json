@@ -1,9 +1,10 @@
 {
+  "shared/chemical-workshop-model.ts": "fe4572e8cd4d414ff4dfde2cc2f5734dc931af429dbdba0793fd0890237e0e04",
   "shared/workshop-models-legacy.ts": "b7d4e56b54ba05863c2678a1961094013d5b26c38700eb5b711b953ee881ea53",
   "shared/workshop-models.ts": "dd101d9397835b7ea9b8fd5ce5374e664cc7aefe2f61af90f8f0458826ddc52a",
   "shared/workshop-models-v1.ts": "0c0d2d0fc9ab3eaaaa6118226e59157733ee067ed0fcdbcfaf3b92b09cd3a2c2",
   "shared/handling-cell-models.ts": "9c9da2b8f4484e0d33ba0480a73fce29c06a6287f712ede7a24e12df0cf7a680",
-  "shared/builtin-models.ts": "dead61f2d19753170b1e12d0a3becd1f8b7d2955431c8c6a07ec4706f58ea14f",
+  "shared/builtin-models.ts": "4b4cc4e96b45b73b47845899e88156e32f055d811bf146988ec2aa34d977dac1",
   "shared/builtin-images.ts": "c6a896226bfe6bb5c1727024ea100ea8f8ee673fa4a1c7d2de33da90ba9cf43a",
   "shared/twin-actions.ts": "53b3591e87ab29d98333e9c6adfe7ae10926b601e6beec031d2ca5c35ee7b0fb",
   "shared/process-control.ts": "8e942532058c12e7839e7bc6d417a33f4a6862a4990318d660163a67a00f85e5",
