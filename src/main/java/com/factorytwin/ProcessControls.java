@@ -40,7 +40,10 @@ final class ProcessControls {
     contracts.validate("PipeProps", props);
     Json.require(props.path("label").asText().length() <= contracts.processControlLimits.path("maximumLabelLength").asInt(),
         owner + " pipe label exceeds the UTF-16 length limit.");
-    Json.require(!node.has("interaction"), owner + " pipes cannot define click interactions.");
+    if (node.has("interaction")) {
+      contracts.validate("CanvasNodeInteraction", node.get("interaction"));
+      Json.require(node.path("interaction").path("clickActions").isEmpty(), owner + " pipes cannot define click actions.");
+    }
     for (String field : List.of("width", "speed"))
       Json.require(Double.isFinite(props.path(field).asDouble()), owner + " pipe " + field + " must be finite.");
     for (String field : List.of("source", "target")) point(props.path(field), owner + " pipe " + field);

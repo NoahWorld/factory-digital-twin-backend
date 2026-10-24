@@ -63,6 +63,15 @@ final class TwinActions {
           }
           continue;
         }
+        if (type.equals("panel-group")) {
+          String groupId = action.path("groupId").asText();
+          List<JsonNode> group = loadItems(p, user, documents, target).values().stream()
+              .filter(node -> groupId.equals(node.path("interaction").path("visibilityGroup").asText()))
+              .toList();
+          if (group.isEmpty() || group.stream().anyMatch(TwinActions::is3d))
+            fail(projectId, sourceId, index, "2D display group " + groupId + " is missing or contains 3D nodes.");
+          continue;
+        }
         String nodeId = action.path("nodeId").asText();
         JsonNode node = loadItems(p, user, documents, target).get(nodeId);
         if (node == null) fail(projectId, sourceId, index, "Component " + nodeId + " does not exist in 2D project " + target + ".");

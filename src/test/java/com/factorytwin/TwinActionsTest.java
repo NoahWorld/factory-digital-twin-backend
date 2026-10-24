@@ -114,4 +114,29 @@ class TwinActionsTest {
     when(db.queryForObject(contains("FROM assets"), eq(Integer.class), eq("tenant"), eq("canvas"), eq("pump-1"))).thenReturn(1);
     validateCanvas(select);
   }
+
+  @Test void groupedVisibilityUsesFinalCanvasAndAuthorizedLinkedProject() {
+    var action = Json.obj("type", "panel-group", "groupId", "process", "operation", "toggle");
+    var show = trigger(action);
+    var member = node("reactor", "vector-icon");
+    member.set("interaction", Json.obj("clickActions", List.of(), "hiddenInPreview", true, "visibilityGroup", "process"));
+    validateCanvas(show, member);
+    var missing = assertThrows(ApiException.class, () -> validateCanvas(show));
+    assertTrue(missing.getMessage().contains("process"));
+    assertTrue(missing.getMessage().contains("trigger"));
+    var invalidMember = member.deepCopy(); invalidMember.put("type", "scene-3d");
+    assertThrows(ApiException.class, () -> validateCanvas(show, invalidMember));
+    var item = instance(); item.set("clickActions", Json.M.valueToTree(List.of(action)));
+    assertThrows(ApiException.class, () -> TwinActions.validate(projects, contracts, user, "scene", "scene", null, List.of(item)));
+    doThrow(new ApiException(403, "forbidden", "No project permission.")).when(projects).access(user, "canvas", false);
+    assertThrows(ApiException.class, () -> TwinActions.validate(projects, contracts, user, "scene", "scene", "canvas", List.of(item)));
+    doReturn(Json.obj("projectType", "2d")).when(projects).access(user, "canvas", false);
+    doReturn(List.of(member)).when(db).query(contains("document_items"), any(RowMapper.class), eq("tenant"), eq("canvas"));
+    TwinActions.validate(projects, contracts, user, "scene", "scene", "canvas", List.of(item));
+    for (String invalid : List.of("", "bad group", "x".repeat(121), "process\n")) {
+      var interaction = member.path("interaction").deepCopy();
+      ((ObjectNode) interaction).put("visibilityGroup", invalid);
+      assertThrows(ApiException.class, () -> contracts.validate("CanvasNodeInteraction", interaction));
+    }
+  }
 }

@@ -107,6 +107,10 @@ class ProcessControlContractTest {
     var click = pipe.deepCopy();
     click.set("interaction", Json.obj("clickActions", List.of()));
     assertThrows(ApiException.class, () -> contracts.canvasNode(click));
+    click.set("interaction", Json.obj("clickActions", List.of(), "hiddenInPreview", true, "visibilityGroup", "process"));
+    contracts.canvasNode(click);
+    ((ObjectNode) click.path("interaction")).set("clickActions", Json.M.valueToTree(List.of(Json.obj("type", "message", "title", "", "text", "Forbidden"))));
+    assertThrows(ApiException.class, () -> contracts.canvasNode(click));
     var many = pipe.deepCopy();
     var waypoints = ((ObjectNode) many.path("props")).putArray("waypoints");
     for (int i = 0; i < 32; i++) waypoints.add(Json.obj("x", i, "y", 0));

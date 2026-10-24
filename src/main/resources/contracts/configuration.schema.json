@@ -247,6 +247,38 @@
       ],
       "additionalProperties": false
     },
+    "TwinPanelGroupAction": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "panel-group"
+        },
+        "groupId": {
+          "type": "string",
+          "maxLength": 120,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}(?![\\s\\S])"
+        },
+        "operation": {
+          "anyOf": [
+            {
+              "const": "show"
+            },
+            {
+              "const": "hide"
+            },
+            {
+              "const": "toggle"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "groupId",
+        "operation"
+      ],
+      "additionalProperties": false
+    },
     "TwinAction": {
       "anyOf": [
         {
@@ -263,6 +295,9 @@
         },
         {
           "$ref": "#/definitions/TwinSetTextAction"
+        },
+        {
+          "$ref": "#/definitions/TwinPanelGroupAction"
         }
       ]
     },
@@ -283,6 +318,15 @@
             },
             {
               "const": true
+            }
+          ]
+        },
+        "visibilityGroup": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 120,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}(?![\\s\\S])"
             }
           ]
         }
@@ -837,6 +881,24 @@
         "icon": {
           "anyOf": [
             {
+              "const": "process-reactor"
+            },
+            {
+              "const": "process-tank"
+            },
+            {
+              "const": "process-condenser"
+            },
+            {
+              "const": "process-separator"
+            },
+            {
+              "const": "process-pump"
+            },
+            {
+              "const": "process-valve"
+            },
+            {
               "const": "wrench"
             },
             {
@@ -981,6 +1043,24 @@
       "properties": {
         "icon": {
           "anyOf": [
+            {
+              "const": "process-reactor"
+            },
+            {
+              "const": "process-tank"
+            },
+            {
+              "const": "process-condenser"
+            },
+            {
+              "const": "process-separator"
+            },
+            {
+              "const": "process-pump"
+            },
+            {
+              "const": "process-valve"
+            },
             {
               "const": "wrench"
             },
@@ -3891,17 +3971,19 @@
             }
           },
           "then": {
-            "not": {
-              "required": [
-                "interaction"
-              ]
-            },
             "properties": {
               "resourceRefs": {
                 "maxItems": 0
               },
               "dataBindingRefs": {
                 "maxItems": 0
+              },
+              "interaction": {
+                "properties": {
+                  "clickActions": {
+                    "maxItems": 0
+                  }
+                }
               }
             }
           }

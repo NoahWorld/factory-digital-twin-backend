@@ -17,6 +17,7 @@
 - 场景和 `model-3d` 的 `preventBottomView` 是默认开启的正式布尔配置。Java 从生成契约补齐旧文档中缺失的字段，保留显式 `false`，拒绝 `null` 和非布尔值；新项目、场景读取、保存与资源 manifest 必须返回一致设置，不维护浏览器专用副本。
 - PostgreSQL 迁移只放在 `src/main/resources/db/migration/`，由 Flyway 管理。
 - 2D/3D 点击动作使用平台仓库的 `shared/twin-actions.ts` 生成契约，Java 在保存文档的同一事务中校验最终节点/实例状态、目标引用及项目权限，失败必须回滚。不得保存任意脚本或绕过关联项目授权；对应回归为 `TwinActionsTest` 和平台仓库的 `pnpm backend:smoke:twin-actions`。
+- `panel-group` 动作按 `interaction.visibilityGroup` 控制纯 2D 组件显隐；引用校验采用事务内最终画布，删除最后成员或混入 3D 节点必须失败，3D 来源仍须验证关联 2D 项目权限。管路允许保存显示分组和默认隐藏，`clickActions` 必须为空；工艺图标仅接受生成白名单。回归覆盖 `TwinActionsTest` 和 `ProcessControlContractTest`。
 - 可选 2D 外部 IoT 点位以平台 `shared/iot-embed.ts` 为契约源。纯文本、指标卡、环形进度节点可保存 `iotBinding={pointKey,valueType,staleAfterSeconds}`，环形进度限 number；名称为 1–200 个 UTF-16 单元、无控制字符和首尾空白，类型为 number/string/boolean，过期时间为 1–86400 秒整数。生成 schema 拒绝 null、未知字段及不支持的组件，Java 在原文档事务内检查最终画布（含未修改节点）的 500 个不同点位预算及同名类型一致性。省略绑定的旧节点不补默认字段；沿用 JSONB、读取/分块、公开分享及固定版本快照保留绑定，不新增迁移或修改原数据源、3D、授权链。运行值仅通过浏览器 `kingdom.iot.points` v1 协议输入，不写回文档；平台旧 Worker 明确拒绝该字段的写入，不得静默丢失。修改后同步生成 `configuration.schema.json`、`iot-binding-limits.json`、`sources.json`，运行 `IotBindingContractTest`、`IotBindingPersistenceTest` 及平台契约检查。
 - 接口驱动采用平台 `shared/twin-drive.ts` 唯一契约，Flyway V5 独立存储 `twin_drive_documents`。新保存仅 `source:"api"`：一个 REST/WS connection、全量点位 sourcePath 与模型绑定；API 的资产 ID 可空，仍校验实例/资源、原生动画排他及工程范围。旧 simulator 文档保留读取用于迁移，但保存/运行/命令明确 `410 legacy_simulation_removed`；不得重新引入模拟调度、initialValue 积分、顺控或 topic 配置。
 - `@Transactional` 服务通过 Spring CGLIB 代理调用；调用方不得直接读取代理实例字段，使用构造注入或服务方法。控制器首次 GET 与源测试回归必须覆盖真实 CGLIB 代理。
